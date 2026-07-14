@@ -1,0 +1,235 @@
+[
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "string",
+                           "name":  "adminUsername",
+                           "type":  "string"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "adminPasswordHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "stateMutability":  "nonpayable",
+        "type":  "constructor"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "wallet",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "uint256",
+                           "name":  "timestamp",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "PasswordChanged",
+        "type":  "event"
+    },
+    {
+        "anonymous":  false,
+        "inputs":  [
+                       {
+                           "indexed":  true,
+                           "internalType":  "address",
+                           "name":  "wallet",
+                           "type":  "address"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "string",
+                           "name":  "username",
+                           "type":  "string"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "enum UserRegistry.Role",
+                           "name":  "role",
+                           "type":  "uint8"
+                       },
+                       {
+                           "indexed":  false,
+                           "internalType":  "uint256",
+                           "name":  "timestamp",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "UserRegistered",
+        "type":  "event"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "admin",
+        "outputs":  [
+                        {
+                            "internalType":  "address",
+                            "name":  "",
+                            "type":  "address"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "oldPasswordHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "newPasswordHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "changePassword",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "getAllWallets",
+        "outputs":  [
+                        {
+                            "internalType":  "address[]",
+                            "name":  "",
+                            "type":  "address[]"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "address",
+                           "name":  "wallet",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "getUser",
+        "outputs":  [
+                        {
+                            "internalType":  "string",
+                            "name":  "username",
+                            "type":  "string"
+                        },
+                        {
+                            "internalType":  "enum UserRegistry.Role",
+                            "name":  "role",
+                            "type":  "uint8"
+                        },
+                        {
+                            "internalType":  "bool",
+                            "name":  "isRegistered",
+                            "type":  "bool"
+                        },
+                        {
+                            "internalType":  "uint256",
+                            "name":  "registeredAt",
+                            "type":  "uint256"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "address",
+                           "name":  "wallet",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "isWalletRegistered",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "",
+                            "type":  "bool"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "address",
+                           "name":  "wallet",
+                           "type":  "address"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "passwordHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "login",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "success",
+                            "type":  "bool"
+                        },
+                        {
+                            "internalType":  "string",
+                            "name":  "username",
+                            "type":  "string"
+                        },
+                        {
+                            "internalType":  "enum UserRegistry.Role",
+                            "name":  "role",
+                            "type":  "uint8"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "address",
+                           "name":  "wallet",
+                           "type":  "address"
+                       },
+                       {
+                           "internalType":  "string",
+                           "name":  "username",
+                           "type":  "string"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "initialPasswordHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "enum UserRegistry.Role",
+                           "name":  "role",
+                           "type":  "uint8"
+                       }
+                   ],
+        "name":  "registerUser",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    }
+]
