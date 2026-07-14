@@ -58,8 +58,8 @@ export default function HomePage() {
               <p className="text-sm text-slate-600">
                 Anda masuk sebagai Admin. Kelola akses karyawan dari sini.
               </p>
-              <Link href="/register" className={`${primaryButtonClass} mt-4 w-full`}>
-                Buka Halaman Register User
+              <Link href="/admin" className={`${primaryButtonClass} mt-4 w-full`}>
+                Buka Dashboard Admin
               </Link>
             </div>
           )}

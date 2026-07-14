@@ -65,6 +65,7 @@ export default function LoginPage() {
     if ((role as Role) === Role.Purchasing) router.push("/purchasing");
     else if ((role as Role) === Role.Finance) router.push("/finance");
     else if ((role as Role) === Role.Manager) router.push("/manager");
+    else if ((role as Role) === Role.Admin) router.push("/admin");
     else router.push("/profile");
   }
 
