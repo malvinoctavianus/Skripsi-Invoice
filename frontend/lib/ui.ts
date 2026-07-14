@@ -24,3 +24,11 @@ export const roleBadgeClass: Record<string, string> = {
   Finance: "bg-emerald-100 text-emerald-700",
   Manager: "bg-amber-100 text-amber-700",
 };
+
+export const statusBadgeClass: Record<string, string> = {
+  "Menunggu Finance": "bg-amber-100 text-amber-700",
+  "Menunggu Manager": "bg-amber-100 text-amber-700",
+  Approved: "bg-emerald-100 text-emerald-700",
+  "Ditolak Finance": "bg-red-100 text-red-700",
+  "Ditolak Manager": "bg-red-100 text-red-700",
+};
