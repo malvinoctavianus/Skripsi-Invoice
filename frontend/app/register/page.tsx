@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { useCurrentUser } from "@/lib/useCurrentUser";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { RoleGuard } from "@/components/RoleGuard";
 import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, Role, roleLabel } from "@/lib/contract";
+import { ADMIN_NAV } from "@/lib/navigation";
 import {
   cardClass,
   errorAlertClass,
@@ -20,9 +19,14 @@ function isAddress(value: string): value is `0x${string}` {
 }
 
 export default function RegisterPage() {
-  const { isConnected } = useAccount();
-  const { isAdmin, isLoading } = useCurrentUser();
+  return (
+    <RoleGuard role={Role.Admin} navItems={ADMIN_NAV}>
+      <RegisterForm />
+    </RoleGuard>
+  );
+}
 
+function RegisterForm() {
   const [wallet, setWallet] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState<Role>(Role.Purchasing);
@@ -30,12 +34,6 @@ export default function RegisterPage() {
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
-
-  const backLink = (
-    <Link href="/" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
-      &larr; Kembali ke Login / Register
-    </Link>
-  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,45 +60,8 @@ export default function RegisterPage() {
     });
   }
 
-  if (!isConnected) {
-    return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-        {backLink}
-        <div className={`${cardClass} flex w-full flex-col items-center gap-4`}>
-          <h1 className="text-lg font-semibold text-slate-900">Register User Baru</h1>
-          <p className="text-sm text-slate-500">Hubungkan wallet Admin terlebih dahulu.</p>
-          <ConnectWalletButton />
-        </div>
-      </main>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-6">
-        {backLink}
-        <p className="text-sm text-slate-500">Memeriksa wallet...</p>
-      </main>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        {backLink}
-        <div className={cardClass}>
-          <p className={errorAlertClass}>
-            Halaman ini hanya bisa diakses oleh wallet Admin yang terdaftar di smart contract.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-5 px-6 py-12">
-      {backLink}
-
+    <main className="flex w-full max-w-lg flex-col gap-5 px-8 py-10">
       <div className={cardClass}>
         <div className="mb-6">
           <h1 className="text-lg font-semibold text-slate-900">Register User Baru</h1>

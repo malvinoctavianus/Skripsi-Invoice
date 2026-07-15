@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { decodeEventLog } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CurrencyInput } from "@/components/CurrencyInput";
-import { INVOICE_ABI, INVOICE_ADDRESS } from "@/lib/contract";
+import { RoleGuard } from "@/components/RoleGuard";
+import { INVOICE_ABI, INVOICE_ADDRESS, Role } from "@/lib/contract";
+import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
@@ -46,6 +48,14 @@ function addDays(date: Date, days: number): Date {
 }
 
 export default function NewInvoicePage() {
+  return (
+    <RoleGuard role={Role.Purchasing} navItems={PURCHASING_NAV}>
+      <NewInvoiceForm />
+    </RoleGuard>
+  );
+}
+
+function NewInvoiceForm() {
   const router = useRouter();
   const [now] = useState(() => new Date());
   const minDate = addDays(now, -MAX_DAYS_BACK);
@@ -180,7 +190,7 @@ export default function NewInvoicePage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-6 py-10">
+    <main className="flex w-full max-w-2xl flex-col gap-5 px-8 py-10">
       <Link href="/purchasing" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
         &larr; Kembali ke Daftar Invoice
       </Link>

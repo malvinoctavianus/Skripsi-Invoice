@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
+import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { useAllInvoices } from "@/lib/useInvoices";
 import { useDashboardSetting } from "@/lib/dashboardSettings";
 import { Invoice, InvoiceStatus, invoiceStatusLabel, Role } from "@/lib/contract";
+import { MANAGER_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
 import { cardClass, statusBadgeClass } from "@/lib/ui";
 
 export default function ManagerPage() {
   return (
-    <RoleGuard role={Role.Manager}>
+    <RoleGuard role={Role.Manager} navItems={MANAGER_NAV}>
       <ManagerDashboard />
     </RoleGuard>
   );
@@ -23,9 +25,10 @@ function ManagerDashboard() {
   const { invoices, isLoading } = useAllInvoices();
 
   const queue = invoices.filter((inv) => inv.status === InvoiceStatus.PendingManager);
+  const approvedCount = invoices.filter((inv) => inv.status === InvoiceStatus.Approved).length;
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-10">
+    <main className="flex w-full max-w-5xl flex-col gap-8 px-8 py-10">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -38,6 +41,12 @@ function ManagerDashboard() {
           {message}
         </div>
       )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Menunggu Approval" value={queue.length} />
+        <StatCard label="Sudah Approved (NFT Terbit)" value={approvedCount} />
+        <StatCard label="Total Transaksi" value={invoices.length} />
+      </div>
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-slate-800">

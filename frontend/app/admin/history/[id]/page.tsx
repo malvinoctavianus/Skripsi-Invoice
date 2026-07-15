@@ -8,10 +8,11 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { ViewPdfButton } from "@/components/ViewPdfButton";
 import { useInvoice } from "@/lib/useInvoices";
 import { Invoice, Role } from "@/lib/contract";
+import { ADMIN_NAV } from "@/lib/navigation";
 
 export default function AdminHistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <RoleGuard role={Role.Admin}>
+    <RoleGuard role={Role.Admin} navItems={ADMIN_NAV}>
       <HistoryDetail params={params} />
     </RoleGuard>
   );
@@ -30,7 +31,7 @@ function HistoryDetail({ params }: { params: Promise<{ id: string }> }) {
 
   if (isLoading) {
     return (
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-6 py-10">
+      <main className="flex w-full max-w-3xl flex-col gap-4 px-8 py-10">
         {backLink}
         <p className="text-sm text-slate-500">Memuat invoice...</p>
       </main>
@@ -39,7 +40,7 @@ function HistoryDetail({ params }: { params: Promise<{ id: string }> }) {
 
   if (!invoice) {
     return (
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-6 py-10">
+      <main className="flex w-full max-w-3xl flex-col gap-4 px-8 py-10">
         {backLink}
         <p className="text-sm text-red-600">Invoice tidak ditemukan.</p>
       </main>
@@ -47,7 +48,7 @@ function HistoryDetail({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
+    <main className="flex w-full max-w-3xl flex-col gap-6 px-8 py-10">
       {backLink}
 
       <p className="-mt-2 font-mono text-xs text-slate-400">

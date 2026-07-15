@@ -2,11 +2,21 @@
 
 import { ReactNode } from "react";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { Role, roleLabel } from "@/lib/contract";
+import { NavItem } from "@/lib/navigation";
 import { cardClass } from "@/lib/ui";
 
-export function RoleGuard({ role, children }: { role: Role; children: ReactNode }) {
+export function RoleGuard({
+  role,
+  navItems,
+  children,
+}: {
+  role: Role;
+  navItems: NavItem[];
+  children: ReactNode;
+}) {
   const { isConnected, isLoading, isRegistered, role: userRole } = useCurrentUser();
 
   if (!isConnected) {
@@ -40,5 +50,5 @@ export function RoleGuard({ role, children }: { role: Role; children: ReactNode 
     );
   }
 
-  return <>{children}</>;
+  return <DashboardLayout navItems={navItems}>{children}</DashboardLayout>;
 }

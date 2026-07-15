@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
+import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { useAllInvoices } from "@/lib/useInvoices";
 import { useDashboardSetting } from "@/lib/dashboardSettings";
 import { InvoiceStatus, Role } from "@/lib/contract";
+import { FINANCE_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
 import { cardClass } from "@/lib/ui";
 
 export default function FinancePage() {
   return (
-    <RoleGuard role={Role.Finance}>
+    <RoleGuard role={Role.Finance} navItems={FINANCE_NAV}>
       <FinanceDashboard />
     </RoleGuard>
   );
@@ -23,9 +25,15 @@ function FinanceDashboard() {
   const { invoices, isLoading } = useAllInvoices();
 
   const queue = invoices.filter((inv) => inv.status === InvoiceStatus.PendingFinance);
+  const approvedByMe = invoices.filter((inv) =>
+    inv.history.some((r) => r.roleLabel === "Finance" && r.approved)
+  ).length;
+  const rejectedByMe = invoices.filter((inv) =>
+    inv.history.some((r) => r.roleLabel === "Finance" && !r.approved)
+  ).length;
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
+    <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -38,6 +46,12 @@ function FinanceDashboard() {
           {message}
         </div>
       )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Menunggu Approval" value={queue.length} />
+        <StatCard label="Sudah Disetujui" value={approvedByMe} />
+        <StatCard label="Sudah Ditolak" value={rejectedByMe} />
+      </div>
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-slate-800">

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useAllUsers } from "@/lib/useUsers";
 import { Role, roleLabel } from "@/lib/contract";
+import { ADMIN_NAV } from "@/lib/navigation";
 import { formatDateTime } from "@/lib/format";
 import { cardClass, roleBadgeClass } from "@/lib/ui";
 
 export default function AdminAccountsPage() {
   return (
-    <RoleGuard role={Role.Admin}>
+    <RoleGuard role={Role.Admin} navItems={ADMIN_NAV}>
       <AccountsList />
     </RoleGuard>
   );
@@ -19,7 +20,7 @@ function AccountsList() {
   const { users, isLoading } = useAllUsers();
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5 px-6 py-10">
+    <main className="flex w-full max-w-3xl flex-col gap-5 px-8 py-10">
       <Link href="/admin" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
         &larr; Kembali ke Dashboard Admin
       </Link>

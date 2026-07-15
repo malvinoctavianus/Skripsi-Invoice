@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
+import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { usePurchasingInvoices } from "@/lib/useInvoices";
 import { useDashboardSetting } from "@/lib/dashboardSettings";
 import { invoiceStatusLabel, Invoice, Role } from "@/lib/contract";
+import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
 import { cardClass, primaryButtonClass, statusBadgeClass } from "@/lib/ui";
 
@@ -14,7 +16,7 @@ type Tab = "pending" | "approved" | "rejected";
 
 export default function PurchasingPage() {
   return (
-    <RoleGuard role={Role.Purchasing}>
+    <RoleGuard role={Role.Purchasing} navItems={PURCHASING_NAV}>
       <PurchasingDashboard />
     </RoleGuard>
   );
@@ -30,7 +32,7 @@ function PurchasingDashboard() {
   const list = listByTab[tab];
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
+    <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
@@ -48,6 +50,12 @@ function PurchasingDashboard() {
           {message}
         </div>
       )}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Pending" value={pending.length} />
+        <StatCard label="Approved" value={approved.length} />
+        <StatCard label="Ditolak" value={rejected.length} />
+      </div>
 
       <div className="flex gap-2">
         {(

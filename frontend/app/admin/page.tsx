@@ -1,53 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { ConnectWalletButton } from "@/components/ConnectWalletButton";
+import { RoleGuard } from "@/components/RoleGuard";
+import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
+import { useAllInvoices } from "@/lib/useInvoices";
+import { useAllUsers } from "@/lib/useUsers";
+import { InvoiceStatus, Role } from "@/lib/contract";
+import { ADMIN_NAV } from "@/lib/navigation";
 import { cardClass, primaryButtonClass } from "@/lib/ui";
 
 export default function AdminPage() {
-  const { address, isConnected, isLoading, isAdmin, username } = useCurrentUser();
+  return (
+    <RoleGuard role={Role.Admin} navItems={ADMIN_NAV}>
+      <AdminDashboard />
+    </RoleGuard>
+  );
+}
 
-  if (!isConnected) {
-    return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
-        <div className={`${cardClass} flex w-full flex-col items-center gap-4`}>
-          <h1 className="text-lg font-semibold text-slate-900">Dashboard Admin</h1>
-          <p className="text-sm text-slate-500">Hubungkan wallet Admin terlebih dahulu.</p>
-          <ConnectWalletButton />
-        </div>
-      </main>
-    );
-  }
+function AdminDashboard() {
+  const { address, username } = useCurrentUser();
+  const { invoices } = useAllInvoices();
+  const { users } = useAllUsers();
 
-  if (isLoading) {
-    return (
-      <main className="mx-auto flex w-full max-w-md flex-1 items-center justify-center px-6">
-        <p className="text-sm text-slate-500">Memeriksa wallet...</p>
-      </main>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <div className={cardClass}>
-          <p className="text-sm text-red-600">
-            Halaman ini hanya bisa diakses oleh wallet Admin yang terdaftar di smart contract.
-          </p>
-        </div>
-      </main>
-    );
-  }
+  const pendingCount = invoices.filter(
+    (inv) => inv.status === InvoiceStatus.PendingFinance || inv.status === InvoiceStatus.PendingManager
+  ).length;
+  const approvedCount = invoices.filter((inv) => inv.status === InvoiceStatus.Approved).length;
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
+    <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Dashboard Admin</h1>
         <p className="mt-1 text-sm text-slate-500">
           Masuk sebagai <strong className="text-slate-700">{username || "Admin"}</strong>{" "}
           &middot; <span className="font-mono text-xs">{address}</span>
         </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Akun Terdaftar"
+          value={users.length}
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+              />
+            </svg>
+          }
+        />
+        <StatCard
+          label="Invoice Menunggu Approval"
+          value={pendingCount}
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
+            </svg>
+          }
+        />
+        <StatCard
+          label="Invoice Approved"
+          value={approvedCount}
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          }
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

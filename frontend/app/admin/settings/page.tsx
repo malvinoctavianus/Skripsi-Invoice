@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
 import { Role } from "@/lib/contract";
+import { ADMIN_NAV } from "@/lib/navigation";
 import {
   DashboardKey,
   loadDashboardSettings,
@@ -19,7 +20,7 @@ const DASHBOARDS: { key: DashboardKey; label: string }[] = [
 
 export default function AdminSettingsPage() {
   return (
-    <RoleGuard role={Role.Admin}>
+    <RoleGuard role={Role.Admin} navItems={ADMIN_NAV}>
       <SettingsForm />
     </RoleGuard>
   );
@@ -41,7 +42,7 @@ function SettingsForm() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-6 py-10">
+    <main className="flex w-full max-w-2xl flex-col gap-5 px-8 py-10">
       <Link href="/admin" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
         &larr; Kembali ke Dashboard Admin
       </Link>
