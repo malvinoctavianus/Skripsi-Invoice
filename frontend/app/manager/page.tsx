@@ -4,6 +4,7 @@ import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { useAllInvoices } from "@/lib/useInvoices";
+import { useDashboardSetting } from "@/lib/dashboardSettings";
 import { Invoice, InvoiceStatus, invoiceStatusLabel, Role } from "@/lib/contract";
 import { formatRupiah, formatDateTime } from "@/lib/format";
 import { cardClass, statusBadgeClass } from "@/lib/ui";
@@ -18,6 +19,7 @@ export default function ManagerPage() {
 
 function ManagerDashboard() {
   const { username } = useCurrentUser();
+  const { title, message } = useDashboardSetting("manager");
   const { invoices, isLoading } = useAllInvoices();
 
   const queue = invoices.filter((inv) => inv.status === InvoiceStatus.PendingManager);
@@ -25,11 +27,17 @@ function ManagerDashboard() {
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-10">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Dashboard Manager</h1>
+        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
         <p className="mt-1 text-sm text-slate-500">
           Login berhasil sebagai <strong className="text-slate-700">{username}</strong>
         </p>
       </div>
+
+      {message && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          {message}
+        </div>
+      )}
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-slate-800">
