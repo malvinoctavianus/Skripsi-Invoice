@@ -1,66 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { useAuth } from "@/lib/AuthContext";
-import { hashPassword } from "@/lib/crypto";
-import { PASSWORD_HINT, validatePassword } from "@/lib/password";
-import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, roleLabel } from "@/lib/contract";
-import {
-  cardClass,
-  errorAlertClass,
-  inputClass,
-  labelClass,
-  primaryButtonClass,
-  roleBadgeClass,
-  successAlertClass,
-} from "@/lib/ui";
+import { useCurrentUser } from "@/lib/useCurrentUser";
+import { roleLabel } from "@/lib/contract";
+import { cardClass, roleBadgeClass } from "@/lib/ui";
 
 export default function ProfilePage() {
-  const { address, isConnected } = useAccount();
-  const { session } = useAuth();
-
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setFormError(null);
-
-    if (!address) {
-      setFormError("Wallet belum terhubung.");
-      return;
-    }
-    if (!USER_REGISTRY_ADDRESS) {
-      setFormError("Alamat smart contract belum diset.");
-      return;
-    }
-    const passwordError = validatePassword(newPassword);
-    if (passwordError) {
-      setFormError(passwordError);
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setFormError("Konfirmasi password baru tidak cocok.");
-      return;
-    }
-
-    const oldHash = hashPassword(address, oldPassword);
-    const newHash = hashPassword(address, newPassword);
-
-    writeContract({
-      abi: USER_REGISTRY_ABI,
-      address: USER_REGISTRY_ADDRESS,
-      functionName: "changePassword",
-      args: [oldHash, newHash],
-    });
-  }
+  const { address, isConnected, isLoading, isAdmin, isRegistered, username, role } = useCurrentUser();
 
   if (!isConnected) {
     return (
@@ -73,80 +19,48 @@ export default function ProfilePage() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <main className="mx-auto flex w-full max-w-md flex-1 items-center justify-center px-6">
+        <p className="text-sm text-slate-500">Memeriksa wallet...</p>
+      </main>
+    );
+  }
+
+  const roleName = isAdmin ? "Admin" : roleLabel(role);
+
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-12">
       <div className={cardClass}>
-        <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-lg font-semibold text-slate-900">Profil</h1>
             <p className="mt-1 font-mono text-xs text-slate-500">{address}</p>
-            {session && <p className="mt-1 text-sm text-slate-600">{session.username}</p>}
+            {(isAdmin || isRegistered) && (
+              <p className="mt-1 text-sm text-slate-600">{username}</p>
+            )}
           </div>
-          {session && (
+          {(isAdmin || isRegistered) && (
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                roleBadgeClass[roleLabel(session.role)] ?? "bg-slate-100 text-slate-600"
+                roleBadgeClass[roleName] ?? "bg-slate-100 text-slate-600"
               }`}
             >
-              {roleLabel(session.role)}
+              {roleName}
             </span>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-slate-800">Ganti Password</h2>
+        {!isAdmin && !isRegistered && (
+          <p className="mt-4 text-sm text-red-600">
+            Wallet ini belum terdaftar. Hubungi Admin untuk registrasi.
+          </p>
+        )}
 
-          <label className={labelClass}>
-            Password Lama
-            <input
-              type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              className={inputClass}
-            />
-          </label>
-
-          <label className={labelClass}>
-            Password Baru
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className={inputClass}
-            />
-            <span className="text-xs font-normal text-slate-400">{PASSWORD_HINT}</span>
-          </label>
-
-          <label className={labelClass}>
-            Konfirmasi Password Baru
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className={inputClass}
-            />
-          </label>
-
-          {formError && <p className={errorAlertClass}>{formError}</p>}
-          {writeError && (
-            <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>
-          )}
-
-          <button type="submit" disabled={isPending || isConfirming} className={primaryButtonClass}>
-            {isPending
-              ? "Menunggu konfirmasi MetaMask..."
-              : isConfirming
-                ? "Mengirim ke blockchain..."
-                : "Simpan Password Baru"}
-          </button>
-
-          {isSuccess && (
-            <p className={successAlertClass}>
-              Password berhasil diubah on-chain. Tx hash:{" "}
-              <span className="break-all font-mono">{txHash}</span>
-            </p>
-          )}
-        </form>
+        <p className="mt-4 text-xs text-slate-400">
+          Otentikasi berbasis wallet — tidak ada password untuk diganti. Cukup hubungkan wallet
+          ini di MetaMask untuk masuk.
+        </p>
       </div>
     </main>
   );

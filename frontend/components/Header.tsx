@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccount, useDisconnect } from "wagmi";
-import { useAuth } from "@/lib/AuthContext";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { roleLabel } from "@/lib/contract";
 import { roleBadgeClass } from "@/lib/ui";
@@ -12,16 +11,14 @@ export function Header() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const { session, setSession } = useAuth();
-  const { isAdmin } = useCurrentUser();
+  const { isAdmin, isRegistered, role } = useCurrentUser();
 
-  function handleLogout() {
-    setSession(null);
+  function handleDisconnect() {
     disconnect();
     router.push("/");
   }
 
-  const roleName = session ? roleLabel(session.role) : isAdmin ? "Admin" : null;
+  const roleName = isAdmin ? "Admin" : isRegistered ? roleLabel(role) : null;
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-900">
@@ -55,10 +52,10 @@ export function Header() {
               {address.slice(0, 6)}...{address.slice(-4)}
             </span>
             <button
-              onClick={handleLogout}
+              onClick={handleDisconnect}
               className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-slate-800"
             >
-              {session ? "Logout" : "Disconnect"}
+              Disconnect
             </button>
           </div>
         )}

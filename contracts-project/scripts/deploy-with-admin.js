@@ -7,12 +7,6 @@ const { ethers } = hre;
 
 const ADMIN_WALLET = "0x2f5B45c929CA80f063464D3f0F60B1d4367Dc293";
 
-function hashPassword(wallet, password) {
-  return ethers.keccak256(
-    ethers.solidityPacked(["address", "string"], [wallet, password])
-  );
-}
-
 async function main() {
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
@@ -26,17 +20,14 @@ async function main() {
   const deployer = await ethers.getSigner(ADMIN_WALLET);
 
   const adminUsername = process.env.ADMIN_USERNAME || "admin";
-  const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "changeme123";
-  const adminPasswordHash = hashPassword(ADMIN_WALLET, adminPassword);
 
   const UserRegistry = await ethers.getContractFactory("UserRegistry", deployer);
-  const registry = await UserRegistry.deploy(adminUsername, adminPasswordHash);
+  const registry = await UserRegistry.deploy(adminUsername);
   await registry.waitForDeployment();
 
   console.log("UserRegistry deployed at:", await registry.getAddress());
   console.log("Admin wallet:", ADMIN_WALLET);
   console.log("Admin username:", adminUsername);
-  console.log("Admin initial password (share securely, then change it):", adminPassword);
 
   await hre.network.provider.request({
     method: "hardhat_stopImpersonatingAccount",

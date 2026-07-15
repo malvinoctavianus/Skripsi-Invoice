@@ -1,17 +1,27 @@
 "use client";
 
-import { useAuth } from "@/lib/AuthContext";
+import { RoleGuard } from "@/components/RoleGuard";
+import { useCurrentUser } from "@/lib/useCurrentUser";
+import { Role } from "@/lib/contract";
 import { cardClass } from "@/lib/ui";
 
 export default function FinancePage() {
-  const { session } = useAuth();
+  return (
+    <RoleGuard role={Role.Finance}>
+      <FinanceDashboard />
+    </RoleGuard>
+  );
+}
+
+function FinanceDashboard() {
+  const { username } = useCurrentUser();
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Dashboard Finance</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Login berhasil sebagai <strong className="text-slate-700">{session?.username ?? "..."}</strong>
+          Login berhasil sebagai <strong className="text-slate-700">{username}</strong>
         </p>
       </div>
 

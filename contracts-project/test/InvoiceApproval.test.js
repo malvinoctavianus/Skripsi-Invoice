@@ -2,12 +2,6 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
-function hashPassword(wallet, password) {
-  return ethers.keccak256(
-    ethers.solidityPacked(["address", "string"], [wallet, password])
-  );
-}
-
 const Role = { None: 0, Admin: 1, Purchasing: 2, Finance: 3, Manager: 4 };
 const Status = {
   PendingFinance: 0,
@@ -30,20 +24,13 @@ describe("InvoiceApproval", function () {
   beforeEach(async function () {
     [admin, purchasing1, finance1, manager1, outsider] = await ethers.getSigners();
 
-    const adminPasswordHash = hashPassword(admin.address, "adminPass123");
     const UserRegistry = await ethers.getContractFactory("UserRegistry");
-    registry = await UserRegistry.deploy("admin", adminPasswordHash);
+    registry = await UserRegistry.deploy("admin");
     await registry.waitForDeployment();
 
-    await registry
-      .connect(admin)
-      .registerUser(purchasing1.address, "purchasing1", hashPassword(purchasing1.address, "temp"), Role.Purchasing);
-    await registry
-      .connect(admin)
-      .registerUser(finance1.address, "finance1", hashPassword(finance1.address, "temp"), Role.Finance);
-    await registry
-      .connect(admin)
-      .registerUser(manager1.address, "manager1", hashPassword(manager1.address, "temp"), Role.Manager);
+    await registry.connect(admin).registerUser(purchasing1.address, "purchasing1", Role.Purchasing);
+    await registry.connect(admin).registerUser(finance1.address, "finance1", Role.Finance);
+    await registry.connect(admin).registerUser(manager1.address, "manager1", Role.Manager);
 
     const InvoiceApproval = await ethers.getContractFactory("InvoiceApproval");
     invoiceApproval = await InvoiceApproval.deploy(await registry.getAddress());

@@ -5,8 +5,6 @@ import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { useCurrentUser } from "@/lib/useCurrentUser";
-import { hashPassword } from "@/lib/crypto";
-import { PASSWORD_HINT, validatePassword } from "@/lib/password";
 import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, Role, roleLabel } from "@/lib/contract";
 import {
   cardClass,
@@ -27,7 +25,6 @@ export default function RegisterPage() {
 
   const [wallet, setWallet] = useState("");
   const [username, setUsername] = useState("");
-  const [tempPassword, setTempPassword] = useState("");
   const [role, setRole] = useState<Role>(Role.Purchasing);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -52,23 +49,16 @@ export default function RegisterPage() {
       setFormError("Username wajib diisi.");
       return;
     }
-    const passwordError = validatePassword(tempPassword);
-    if (passwordError) {
-      setFormError(passwordError);
-      return;
-    }
     if (!USER_REGISTRY_ADDRESS) {
       setFormError("Alamat smart contract belum diset (NEXT_PUBLIC_USER_REGISTRY_ADDRESS).");
       return;
     }
 
-    const passwordHash = hashPassword(wallet, tempPassword);
-
     writeContract({
       abi: USER_REGISTRY_ABI,
       address: USER_REGISTRY_ADDRESS,
       functionName: "registerUser",
-      args: [wallet, username.trim(), passwordHash, role],
+      args: [wallet, username.trim(), role],
     });
   }
 
@@ -115,9 +105,9 @@ export default function RegisterPage() {
         <div className="mb-6">
           <h1 className="text-lg font-semibold text-slate-900">Register User Baru</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Hanya Admin yang bisa mendaftarkan wallet Purchasing atau Finance. Password sementara
-            akan di-hash (Keccak256) sebelum dikirim ke blockchain — tidak pernah disimpan dalam
-            bentuk teks biasa.
+            Hanya Admin yang bisa mendaftarkan wallet Purchasing, Finance, atau Manager.
+            Otentikasi selanjutnya cukup dengan menghubungkan wallet ini di MetaMask — tidak
+            perlu password.
           </p>
         </div>
 
@@ -140,18 +130,6 @@ export default function RegisterPage() {
               placeholder="mis. purchasing1"
               className={inputClass}
             />
-          </label>
-
-          <label className={labelClass}>
-            Password Sementara
-            <input
-              type="password"
-              value={tempPassword}
-              onChange={(e) => setTempPassword(e.target.value)}
-              placeholder="mis. Purchasing123"
-              className={inputClass}
-            />
-            <span className="text-xs font-normal text-slate-400">{PASSWORD_HINT}</span>
           </label>
 
           <label className={labelClass}>

@@ -2,16 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/lib/AuthContext";
+import { RoleGuard } from "@/components/RoleGuard";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 import { usePurchasingInvoices } from "@/lib/useInvoices";
-import { invoiceStatusLabel, Invoice } from "@/lib/contract";
+import { invoiceStatusLabel, Invoice, Role } from "@/lib/contract";
 import { formatRupiah, formatDateTime } from "@/lib/format";
 import { cardClass, primaryButtonClass, statusBadgeClass } from "@/lib/ui";
 
 type Tab = "pending" | "approved" | "rejected";
 
 export default function PurchasingPage() {
-  const { session } = useAuth();
+  return (
+    <RoleGuard role={Role.Purchasing}>
+      <PurchasingDashboard />
+    </RoleGuard>
+  );
+}
+
+function PurchasingDashboard() {
+  const { username } = useCurrentUser();
   const { pending, approved, rejected, isLoading } = usePurchasingInvoices();
   const [tab, setTab] = useState<Tab>("pending");
 
@@ -24,7 +33,7 @@ export default function PurchasingPage() {
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Dashboard Purchasing</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Login sebagai <strong className="text-slate-700">{session?.username ?? "..."}</strong>
+            Login sebagai <strong className="text-slate-700">{username}</strong>
           </p>
         </div>
         <Link href="/purchasing/new" className={primaryButtonClass}>

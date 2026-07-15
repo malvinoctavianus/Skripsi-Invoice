@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
-import { useAuth } from "@/lib/AuthContext";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { cardClass, primaryButtonClass } from "@/lib/ui";
 
 export default function AdminPage() {
-  const { session } = useAuth();
-  const { address, isConnected, isLoading, isAdmin } = useCurrentUser();
+  const { address, isConnected, isLoading, isAdmin, username } = useCurrentUser();
 
   if (!isConnected) {
     return (
@@ -47,7 +45,7 @@ export default function AdminPage() {
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Dashboard Admin</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Masuk sebagai <strong className="text-slate-700">{session?.username ?? "Admin"}</strong>{" "}
+          Masuk sebagai <strong className="text-slate-700">{username || "Admin"}</strong>{" "}
           &middot; <span className="font-mono text-xs">{address}</span>
         </p>
       </div>
