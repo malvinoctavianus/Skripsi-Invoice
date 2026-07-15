@@ -1,7 +1,7 @@
 import { Invoice, invoiceStatusLabel } from "./contract";
 import { formatDateTime, formatRupiah } from "./format";
 
-export async function downloadInvoicePdf(invoice: Invoice) {
+async function buildInvoicePdf(invoice: Invoice) {
   const { default: jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
 
@@ -109,5 +109,19 @@ export async function downloadInvoicePdf(invoice: Invoice) {
     doc.internal.pageSize.getHeight() - 10
   );
 
+  return { doc, invoiceId };
+}
+
+/** Opens the invoice PDF in a new tab using the browser's built-in PDF viewer, so the
+ * user can look at it first - they can download it themselves from within that viewer. */
+export async function previewInvoicePdf(invoice: Invoice) {
+  const { doc } = await buildInvoicePdf(invoice);
+  const blobUrl = doc.output("bloburl");
+  window.open(blobUrl, "_blank");
+}
+
+/** Triggers an immediate file download, bypassing preview. */
+export async function downloadInvoicePdf(invoice: Invoice) {
+  const { doc, invoiceId } = await buildInvoicePdf(invoice);
   doc.save(`${invoiceId}.pdf`);
 }
