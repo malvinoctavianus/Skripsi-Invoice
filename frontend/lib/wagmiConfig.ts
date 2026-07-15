@@ -8,6 +8,6 @@ export const wagmiConfig = createConfig({
   ssr: true,
   transports: {
     [hardhat.id]: http(),
-    [sepolia.id]: http(),
+    [sepolia.id]: http("https://ethereum-sepolia-rpc.publicnode.com"),
   },
 });
