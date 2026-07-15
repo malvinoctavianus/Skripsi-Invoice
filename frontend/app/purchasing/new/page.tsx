@@ -11,19 +11,28 @@ import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass,
 
 type ItemRow = { name: string; qty: string; unitPrice: string };
 
-function toDatetimeLocalValue(date: Date): string {
+const MAX_DAYS_BACK = 3;
+const MAX_DAYS_FORWARD = 1;
+
+function toDateValue(date: Date): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
 }
 
 export default function NewInvoicePage() {
   const router = useRouter();
-  const now = new Date();
+  const [now] = useState(() => new Date());
+  const minDate = addDays(now, -MAX_DAYS_BACK);
+  const maxDate = addDays(now, MAX_DAYS_FORWARD);
 
   const [supplierName, setSupplierName] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState(toDatetimeLocalValue(now));
+  const [selectedDate, setSelectedDate] = useState(toDateValue(now));
   const [items, setItems] = useState<ItemRow[]>([{ name: "", qty: "1", unitPrice: "0" }]);
   const [dpAmount, setDpAmount] = useState("0");
   const [formError, setFormError] = useState<string | null>(null);
@@ -64,13 +73,18 @@ export default function NewInvoicePage() {
       return;
     }
 
-    const selectedDate = new Date(invoiceDate);
-    if (Number.isNaN(selectedDate.getTime())) {
-      setFormError("Tanggal & waktu tidak valid.");
+    const datePart = new Date(selectedDate);
+    if (Number.isNaN(datePart.getTime())) {
+      setFormError("Tanggal tidak valid.");
       return;
     }
-    if (selectedDate.getTime() < Date.now() - 60_000) {
-      setFormError("Tanggal & waktu tidak boleh backdate (di masa lalu).");
+    const invoiceDateTime = new Date(datePart);
+    invoiceDateTime.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), 0);
+
+    if (toDateValue(datePart) < toDateValue(minDate) || toDateValue(datePart) > toDateValue(maxDate)) {
+      setFormError(
+        `Tanggal hanya boleh ${MAX_DAYS_BACK} hari ke belakang sampai ${MAX_DAYS_FORWARD} hari ke depan dari hari ini.`
+      );
       return;
     }
 
@@ -96,7 +110,7 @@ export default function NewInvoicePage() {
       functionName: "createInvoice",
       args: [
         supplierName.trim(),
-        BigInt(Math.floor(selectedDate.getTime() / 1000)),
+        BigInt(Math.floor(invoiceDateTime.getTime() / 1000)),
         validItems.map((item) => ({
           name: item.name.trim(),
           qty: BigInt(item.qty),
@@ -132,16 +146,32 @@ export default function NewInvoicePage() {
             <input value="Akan dibuat otomatis" disabled className={`${inputClass} bg-slate-50 text-slate-400`} />
           </label>
 
-          <label className={labelClass}>
-            Tanggal &amp; Waktu
-            <input
-              type="datetime-local"
-              value={invoiceDate}
-              min={toDatetimeLocalValue(now)}
-              onChange={(e) => setInvoiceDate(e.target.value)}
-              className={inputClass}
-            />
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className={labelClass}>
+              Tanggal
+              <input
+                type="date"
+                value={selectedDate}
+                min={toDateValue(minDate)}
+                max={toDateValue(maxDate)}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className={inputClass}
+              />
+              <span className="text-xs font-normal text-slate-400">
+                Bisa dipilih {MAX_DAYS_BACK} hari ke belakang s/d {MAX_DAYS_FORWARD} hari ke depan.
+              </span>
+            </label>
+
+            <label className={labelClass}>
+              Waktu
+              <input
+                value={now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                disabled
+                className={`${inputClass} bg-slate-50 text-slate-400`}
+              />
+              <span className="text-xs font-normal text-slate-400">Otomatis, tidak bisa diubah.</span>
+            </label>
+          </div>
 
           <label className={labelClass}>
             Nama Pemasok
