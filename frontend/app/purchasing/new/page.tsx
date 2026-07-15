@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { decodeEventLog } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CurrencyInput } from "@/components/CurrencyInput";
 import { INVOICE_ABI, INVOICE_ADDRESS } from "@/lib/contract";
@@ -67,7 +68,9 @@ export default function NewInvoicePage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
 
   useEffect(() => {
     const data: Draft = { supplierName, selectedDate, items, dpAmount };
@@ -75,11 +78,25 @@ export default function NewInvoicePage() {
   }, [supplierName, selectedDate, items, dpAmount]);
 
   useEffect(() => {
-    if (isSuccess) {
-      window.localStorage.removeItem(DRAFT_KEY);
-      router.push("/purchasing");
+    if (!isSuccess || !receipt) return;
+
+    window.localStorage.removeItem(DRAFT_KEY);
+
+    let newInvoiceId: bigint | null = null;
+    for (const log of receipt.logs) {
+      try {
+        const decoded = decodeEventLog({ abi: INVOICE_ABI, data: log.data, topics: log.topics });
+        if (decoded.eventName === "InvoiceCreated") {
+          newInvoiceId = (decoded.args as unknown as { id: bigint }).id;
+          break;
+        }
+      } catch {
+        // not our event, ignore
+      }
     }
-  }, [isSuccess, router]);
+
+    router.push(newInvoiceId ? `/purchasing/${newInvoiceId}` : "/purchasing");
+  }, [isSuccess, receipt, router]);
 
   const total = items.reduce((sum, item) => {
     const qty = Number(item.qty) || 0;
