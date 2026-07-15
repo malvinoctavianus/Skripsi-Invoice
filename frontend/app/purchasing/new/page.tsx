@@ -270,13 +270,7 @@ export default function NewInvoicePage() {
 
           <label className={labelClass}>
             DP (Opsional)
-            <input
-              type="number"
-              min="0"
-              value={dpAmount}
-              onChange={(e) => setDpAmount(e.target.value)}
-              className={inputClass}
-            />
+            <CurrencyInput value={dpAmount} onChange={setDpAmount} placeholder="Rp 0" className={inputClass} />
           </label>
 
           <div className="flex flex-col gap-1 rounded-lg bg-slate-50 px-4 py-3 text-sm">
