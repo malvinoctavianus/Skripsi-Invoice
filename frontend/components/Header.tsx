@@ -10,11 +10,11 @@ import { roleBadgeClass } from "@/lib/ui";
 export function Header() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { disconnectAsync } = useDisconnect();
   const { isAdmin, isRegistered, role } = useCurrentUser();
 
-  function handleDisconnect() {
-    disconnect();
+  async function handleDisconnect() {
+    await disconnectAsync();
     router.push("/");
   }
 
