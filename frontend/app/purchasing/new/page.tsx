@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
@@ -10,6 +10,25 @@ import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
 type ItemRow = { name: string; qty: string; unitPrice: string };
+
+type Draft = {
+  supplierName: string;
+  selectedDate: string;
+  items: ItemRow[];
+  dpAmount: string;
+};
+
+const DRAFT_KEY = "purchasing-invoice-draft";
+
+function loadDraft(): Draft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
 
 const MAX_DAYS_BACK = 3;
 const MAX_DAYS_FORWARD = 1;
@@ -31,14 +50,36 @@ export default function NewInvoicePage() {
   const minDate = addDays(now, -MAX_DAYS_BACK);
   const maxDate = addDays(now, MAX_DAYS_FORWARD);
 
-  const [supplierName, setSupplierName] = useState("");
-  const [selectedDate, setSelectedDate] = useState(toDateValue(now));
-  const [items, setItems] = useState<ItemRow[]>([{ name: "", qty: "1", unitPrice: "0" }]);
-  const [dpAmount, setDpAmount] = useState("0");
+  const [draft] = useState(() => loadDraft());
+  const [supplierName, setSupplierName] = useState(draft?.supplierName ?? "");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const initial = draft?.selectedDate ?? toDateValue(now);
+    const min = toDateValue(minDate);
+    const max = toDateValue(maxDate);
+    if (initial < min) return min;
+    if (initial > max) return max;
+    return initial;
+  });
+  const [items, setItems] = useState<ItemRow[]>(
+    draft?.items ?? [{ name: "", qty: "1", unitPrice: "0" }]
+  );
+  const [dpAmount, setDpAmount] = useState(draft?.dpAmount ?? "0");
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+
+  useEffect(() => {
+    const data: Draft = { supplierName, selectedDate, items, dpAmount };
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+  }, [supplierName, selectedDate, items, dpAmount]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      window.localStorage.removeItem(DRAFT_KEY);
+      router.push("/purchasing");
+    }
+  }, [isSuccess, router]);
 
   const total = items.reduce((sum, item) => {
     const qty = Number(item.qty) || 0;
@@ -119,10 +160,6 @@ export default function NewInvoicePage() {
         BigInt(dp),
       ],
     });
-  }
-
-  if (isSuccess) {
-    router.push("/purchasing");
   }
 
   return (
