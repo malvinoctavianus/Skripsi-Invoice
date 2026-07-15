@@ -8,7 +8,7 @@ const { ethers } = hre;
 const PURCHASING_WALLET = "0x92A7cb6c486A2452ac9CA73646A511b63f198Adc";
 const FINANCE_WALLET = "0x18677C7262aE7fDaC0357846fAC356d2d24aEF81";
 const MANAGER_WALLET = "0xBC6C6Ec0D7e0b2D4D18935e37fFd66c00A48788d";
-const INVOICE_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const INVOICE_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 async function impersonate(address) {
   await hre.network.provider.request({ method: "hardhat_impersonateAccount", params: [address] });

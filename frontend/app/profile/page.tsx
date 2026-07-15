@@ -5,6 +5,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { useAuth } from "@/lib/AuthContext";
 import { hashPassword } from "@/lib/crypto";
+import { PASSWORD_HINT, validatePassword } from "@/lib/password";
 import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, roleLabel } from "@/lib/contract";
 import {
   cardClass,
@@ -40,8 +41,9 @@ export default function ProfilePage() {
       setFormError("Alamat smart contract belum diset.");
       return;
     }
-    if (newPassword.length < 6) {
-      setFormError("Password baru minimal 6 karakter.");
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setFormError(passwordError);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -112,6 +114,7 @@ export default function ProfilePage() {
               onChange={(e) => setNewPassword(e.target.value)}
               className={inputClass}
             />
+            <span className="text-xs font-normal text-slate-400">{PASSWORD_HINT}</span>
           </label>
 
           <label className={labelClass}>

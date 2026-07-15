@@ -6,6 +6,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { hashPassword } from "@/lib/crypto";
+import { PASSWORD_HINT, validatePassword } from "@/lib/password";
 import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, Role, roleLabel } from "@/lib/contract";
 import {
   cardClass,
@@ -51,8 +52,9 @@ export default function RegisterPage() {
       setFormError("Username wajib diisi.");
       return;
     }
-    if (tempPassword.length < 6) {
-      setFormError("Password sementara minimal 6 karakter.");
+    const passwordError = validatePassword(tempPassword);
+    if (passwordError) {
+      setFormError(passwordError);
       return;
     }
     if (!USER_REGISTRY_ADDRESS) {
@@ -146,9 +148,10 @@ export default function RegisterPage() {
               type="password"
               value={tempPassword}
               onChange={(e) => setTempPassword(e.target.value)}
-              placeholder="Minimal 6 karakter"
+              placeholder="mis. Purchasing123"
               className={inputClass}
             />
+            <span className="text-xs font-normal text-slate-400">{PASSWORD_HINT}</span>
           </label>
 
           <label className={labelClass}>
