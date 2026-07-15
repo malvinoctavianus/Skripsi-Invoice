@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { CurrencyInput } from "@/components/CurrencyInput";
 import { INVOICE_ABI, INVOICE_ADDRESS } from "@/lib/contract";
 import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
@@ -177,11 +178,10 @@ export default function NewInvoicePage() {
                   </label>
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Harga Satuan
-                    <input
-                      type="number"
-                      min="0"
+                    <CurrencyInput
                       value={item.unitPrice}
-                      onChange={(e) => updateItem(index, { unitPrice: e.target.value })}
+                      onChange={(raw) => updateItem(index, { unitPrice: raw })}
+                      placeholder="Rp 0"
                       className={inputClass}
                     />
                   </label>
