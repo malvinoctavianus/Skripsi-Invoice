@@ -349,13 +349,20 @@ function NewInvoiceForm() {
           {formError && <p className={errorAlertClass}>{formError}</p>}
           {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}
 
-          <button type="submit" disabled={isPending || isConfirming} className={primaryButtonClass}>
+          <button
+            type="submit"
+            disabled={isPending || isConfirming || supplierName.trim().length === 0}
+            className={primaryButtonClass}
+          >
             {isPending
               ? "Menunggu konfirmasi MetaMask..."
               : isConfirming
                 ? "Mengirim ke blockchain..."
                 : "Submit Invoice"}
           </button>
+          {supplierName.trim().length === 0 && (
+            <p className="text-xs text-slate-400">Pilih nama pemasok dulu sebelum bisa submit.</p>
+          )}
         </form>
       </div>
     </main>
