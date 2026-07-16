@@ -16,7 +16,6 @@ type ItemRow = { name: string; qty: string; unitPrice: string };
 
 type Draft = {
   supplierName: string;
-  selectedDate: string;
   items: ItemRow[];
   dpAmount: string;
 };
@@ -33,20 +32,6 @@ function loadDraft(): Draft | null {
   }
 }
 
-const MAX_DAYS_BACK = 3;
-const MAX_DAYS_FORWARD = 1;
-
-function toDateValue(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function addDays(date: Date, days: number): Date {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
-}
-
 export default function NewInvoicePage() {
   return (
     <RoleGuard role={Role.Purchasing} navItems={PURCHASING_NAV}>
@@ -58,19 +43,9 @@ export default function NewInvoicePage() {
 function NewInvoiceForm() {
   const router = useRouter();
   const [now] = useState(() => new Date());
-  const minDate = addDays(now, -MAX_DAYS_BACK);
-  const maxDate = addDays(now, MAX_DAYS_FORWARD);
 
   const [draft] = useState(() => loadDraft());
   const [supplierName, setSupplierName] = useState(draft?.supplierName ?? "");
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const initial = draft?.selectedDate ?? toDateValue(now);
-    const min = toDateValue(minDate);
-    const max = toDateValue(maxDate);
-    if (initial < min) return min;
-    if (initial > max) return max;
-    return initial;
-  });
   const [items, setItems] = useState<ItemRow[]>(
     draft?.items ?? [{ name: "", qty: "1", unitPrice: "0" }]
   );
@@ -83,9 +58,9 @@ function NewInvoiceForm() {
   });
 
   useEffect(() => {
-    const data: Draft = { supplierName, selectedDate, items, dpAmount };
+    const data: Draft = { supplierName, items, dpAmount };
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-  }, [supplierName, selectedDate, items, dpAmount]);
+  }, [supplierName, items, dpAmount]);
 
   useEffect(() => {
     if (!isSuccess || !receipt) return;
@@ -141,21 +116,6 @@ function NewInvoiceForm() {
       return;
     }
 
-    const datePart = new Date(selectedDate);
-    if (Number.isNaN(datePart.getTime())) {
-      setFormError("Tanggal tidak valid.");
-      return;
-    }
-    const invoiceDateTime = new Date(datePart);
-    invoiceDateTime.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), 0);
-
-    if (toDateValue(datePart) < toDateValue(minDate) || toDateValue(datePart) > toDateValue(maxDate)) {
-      setFormError(
-        `Tanggal hanya boleh ${MAX_DAYS_BACK} hari ke belakang sampai ${MAX_DAYS_FORWARD} hari ke depan dari hari ini.`
-      );
-      return;
-    }
-
     const validItems = items.filter((item) => item.name.trim().length > 0);
     if (validItems.length === 0) {
       setFormError("Minimal satu barang harus diisi.");
@@ -178,7 +138,7 @@ function NewInvoiceForm() {
       functionName: "createInvoice",
       args: [
         supplierName.trim(),
-        BigInt(Math.floor(invoiceDateTime.getTime() / 1000)),
+        BigInt(Math.floor(now.getTime() / 1000)),
         validItems.map((item) => ({
           name: item.name.trim(),
           qty: BigInt(item.qty),
@@ -214,16 +174,11 @@ function NewInvoiceForm() {
             <label className={labelClass}>
               Tanggal
               <input
-                type="date"
-                value={selectedDate}
-                min={toDateValue(minDate)}
-                max={toDateValue(maxDate)}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className={inputClass}
+                value={now.toLocaleDateString("id-ID", { dateStyle: "long" })}
+                disabled
+                className={`${inputClass} bg-slate-50 text-slate-400`}
               />
-              <span className="text-xs font-normal text-slate-400">
-                Bisa dipilih {MAX_DAYS_BACK} hari ke belakang s/d {MAX_DAYS_FORWARD} hari ke depan.
-              </span>
+              <span className="text-xs font-normal text-slate-400">Otomatis, tidak bisa diubah.</span>
             </label>
 
             <label className={labelClass}>
