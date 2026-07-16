@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useAllSuppliers } from "@/lib/useSuppliers";
-import { Role, supplierStatusLabel } from "@/lib/contract";
+import { Role, Supplier, SupplierStatus, supplierStatusLabel } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatDateTime } from "@/lib/format";
 import { cardClass, primaryButtonClass, statusBadgeClass } from "@/lib/ui";
+
+type Tab = "pending" | "approved" | "rejected";
 
 export default function SuppliersPage() {
   return (
@@ -20,6 +23,14 @@ export default function SuppliersPage() {
 function SuppliersList() {
   const { address } = useAccount();
   const { suppliers, isLoading } = useAllSuppliers();
+  const [tab, setTab] = useState<Tab>("pending");
+
+  const pending = suppliers.filter((s) => s.status === SupplierStatus.Pending);
+  const approved = suppliers.filter((s) => s.status === SupplierStatus.Approved);
+  const rejected = suppliers.filter((s) => s.status === SupplierStatus.Rejected);
+
+  const listByTab: Record<Tab, Supplier[]> = { pending, approved, rejected };
+  const list = listByTab[tab];
 
   return (
     <main className="flex w-full max-w-4xl flex-col gap-6 px-8 py-10">
@@ -37,18 +48,49 @@ function SuppliersList() {
         </Link>
       </div>
 
+      <div className="flex gap-2">
+        {(
+          [
+            { key: "pending", label: `Menunggu Persetujuan (${pending.length})` },
+            { key: "approved", label: `Approved (${approved.length})` },
+            { key: "rejected", label: `Ditolak (${rejected.length})` },
+          ] as { key: Tab; label: string }[]
+        ).map((opt) => (
+          <label
+            key={opt.key}
+            className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              tab === opt.key
+                ? "border-blue-600 bg-blue-600 text-white"
+                : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            <input
+              type="radio"
+              name="supplier-tab"
+              value={opt.key}
+              checked={tab === opt.key}
+              onChange={() => setTab(opt.key)}
+              className="sr-only"
+            />
+            {opt.label}
+          </label>
+        ))}
+      </div>
+
       {isLoading && <p className="text-sm text-slate-500">Memuat data supplier...</p>}
 
-      {!isLoading && suppliers.length === 0 && (
+      {!isLoading && list.length === 0 && (
         <div className={`${cardClass} flex flex-col items-center gap-2 py-12 text-center`}>
-          <p className="font-medium text-slate-700">Belum ada supplier</p>
-          <p className="max-w-sm text-sm text-slate-500">
-            Klik &quot;+ Tambah Supplier&quot; untuk mendaftarkan supplier pertama.
-          </p>
+          <p className="font-medium text-slate-700">Belum ada supplier pada kategori ini</p>
+          {tab === "pending" && (
+            <p className="max-w-sm text-sm text-slate-500">
+              Klik &quot;+ Tambah Supplier&quot; untuk mendaftarkan supplier pertama.
+            </p>
+          )}
         </div>
       )}
 
-      {!isLoading && suppliers.length > 0 && (
+      {!isLoading && list.length > 0 && (
         <div className={`${cardClass} overflow-x-auto p-0`}>
           <table className="w-full min-w-[680px] border-collapse text-sm">
             <thead>
@@ -61,7 +103,7 @@ function SuppliersList() {
               </tr>
             </thead>
             <tbody>
-              {suppliers.map((supplier) => {
+              {list.map((supplier) => {
                 const label = supplierStatusLabel(supplier.status);
                 const canEdit = address?.toLowerCase() === supplier.addedBy.toLowerCase();
                 return (
