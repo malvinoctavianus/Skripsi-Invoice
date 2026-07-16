@@ -239,18 +239,19 @@ function NewInvoiceForm() {
           <label className={labelClass}>
             Nama Pemasok
             {suppliers.length === 0 ? (
-              <>
-                <select disabled className={`${inputClass} bg-slate-50 text-slate-400`}>
-                  <option>Belum ada supplier yang disetujui Admin</option>
-                </select>
-                <span className="text-xs font-normal text-slate-400">
-                  Tambahkan supplier dulu di menu{" "}
-                  <Link href="/purchasing/suppliers/new" className="text-blue-600 hover:underline">
-                    Data Supplier
-                  </Link>{" "}
-                  dan tunggu disetujui Admin.
-                </span>
-              </>
+              <div className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="text-sm font-medium text-amber-800">Belum ada data supplier</p>
+                <p className="text-xs text-amber-700">
+                  Invoice tidak bisa dibuat sebelum ada supplier yang disetujui Admin. Tambahkan
+                  supplier dulu, lalu tunggu Admin menyetujuinya.
+                </p>
+                <Link
+                  href="/purchasing/suppliers/new"
+                  className="self-start text-sm font-semibold text-amber-800 underline hover:text-amber-900"
+                >
+                  + Tambah Supplier
+                </Link>
+              </div>
             ) : (
               <select
                 value={supplierName}
