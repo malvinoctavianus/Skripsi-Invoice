@@ -48,7 +48,7 @@ export function InvoiceDocument({ invoice, headerRight }: { invoice: Invoice; he
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[480px] border-collapse text-sm">
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
               <th className="py-2 pr-3">Barang</th>
