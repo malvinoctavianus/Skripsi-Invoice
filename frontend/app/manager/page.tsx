@@ -69,16 +69,16 @@ function ManagerDashboard() {
             <table className="w-full min-w-[560px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
-                  <th className="px-4 py-3">ID</th>
-                  <th className="px-4 py-3">Pemasok</th>
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3">Total</th>
+                  <th className="px-6 py-3">ID</th>
+                  <th className="px-6 py-3">Pemasok</th>
+                  <th className="px-6 py-3">Tanggal</th>
+                  <th className="px-6 py-3">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {queue.map((inv) => (
                   <tr key={inv.id.toString()} className="border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-3">
                       <Link
                         href={`/manager/${inv.id}`}
                         className="whitespace-nowrap font-medium text-blue-600 hover:underline"
@@ -86,9 +86,9 @@ function ManagerDashboard() {
                         INV-{inv.id.toString().padStart(4, "0")}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{inv.supplierName}</td>
-                    <td className="px-4 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
-                    <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
+                    <td className="px-6 py-3 text-slate-700">{inv.supplierName}</td>
+                    <td className="px-6 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
+                    <td className="px-6 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -120,17 +120,17 @@ function ManagerDashboard() {
             <table className="w-full min-w-[600px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
-                  <th className="px-4 py-3">ID</th>
-                  <th className="px-4 py-3">Pemasok</th>
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3">Total</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-6 py-3">ID</th>
+                  <th className="px-6 py-3">Pemasok</th>
+                  <th className="px-6 py-3">Tanggal</th>
+                  <th className="px-6 py-3">Total</th>
+                  <th className="px-6 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {invoices.map((inv: Invoice) => (
                   <tr key={inv.id.toString()} className="border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-3">
                       <Link
                         href={`/manager/${inv.id}`}
                         className="whitespace-nowrap font-medium text-blue-600 hover:underline"
@@ -138,10 +138,10 @@ function ManagerDashboard() {
                         INV-{inv.id.toString().padStart(4, "0")}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{inv.supplierName}</td>
-                    <td className="px-4 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
-                    <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-3 text-slate-700">{inv.supplierName}</td>
+                    <td className="px-6 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
+                    <td className="px-6 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
+                    <td className="px-6 py-3">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
                           statusBadgeClass[invoiceStatusLabel(inv.status)] ?? "bg-slate-100 text-slate-600"
