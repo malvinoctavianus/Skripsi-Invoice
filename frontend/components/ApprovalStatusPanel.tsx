@@ -52,7 +52,7 @@ export function ApprovalStatusPanel({ invoice }: { invoice: Invoice }) {
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="mb-3 text-sm font-semibold text-slate-800">Persetujuan Invoice</h3>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[420px] border-collapse text-sm">
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
               <th className="py-2 pr-3">Nama</th>

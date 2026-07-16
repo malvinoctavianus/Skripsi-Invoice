@@ -92,10 +92,8 @@ function FinanceInvoiceDetail({ params }: { params: Promise<{ id: string }> }) {
 
       <InvoiceDocument invoice={invoice} headerRight={<ViewPdfButton invoice={invoice} />} />
 
-      <div className="flex justify-end">
-        <div className="w-full sm:max-w-md">
-          <ApprovalStatusPanel invoice={invoice} />
-        </div>
+      <div>
+        <ApprovalStatusPanel invoice={invoice} />
       </div>
 
       {isPendingFinance ? (
