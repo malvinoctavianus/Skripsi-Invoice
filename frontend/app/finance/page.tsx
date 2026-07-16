@@ -6,10 +6,10 @@ import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { useAllInvoices } from "@/lib/useInvoices";
 import { useDashboardSetting } from "@/lib/dashboardSettings";
-import { InvoiceStatus, Role } from "@/lib/contract";
+import { Invoice, InvoiceStatus, invoiceStatusLabel, Role } from "@/lib/contract";
 import { FINANCE_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
-import { cardClass } from "@/lib/ui";
+import { cardClass, statusBadgeClass } from "@/lib/ui";
 
 export default function FinancePage() {
   return (
@@ -25,10 +25,11 @@ function FinanceDashboard() {
   const { invoices, isLoading } = useAllInvoices();
 
   const queue = invoices.filter((inv) => inv.status === InvoiceStatus.PendingFinance);
-  const approvedByMe = invoices.filter((inv) =>
+  const processedByMe = invoices.filter((inv) => inv.history.some((r) => r.roleLabel === "Finance"));
+  const approvedByMe = processedByMe.filter((inv) =>
     inv.history.some((r) => r.roleLabel === "Finance" && r.approved)
   ).length;
-  const rejectedByMe = invoices.filter((inv) =>
+  const rejectedByMe = processedByMe.filter((inv) =>
     inv.history.some((r) => r.roleLabel === "Finance" && !r.approved)
   ).length;
 
@@ -95,6 +96,64 @@ function FinanceDashboard() {
                     <td className="px-4 py-3 text-slate-700">{inv.supplierName}</td>
                     <td className="px-4 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
                     <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-slate-800">
+          Invoice yang Sudah Saya Proses ({processedByMe.length})
+        </h2>
+        <p className="mb-3 -mt-2 text-xs text-slate-500">
+          Termasuk status akhirnya di Manager, supaya kamu tahu invoice yang sudah kamu approve
+          akhirnya lolos atau ditolak.
+        </p>
+
+        {!isLoading && processedByMe.length === 0 && (
+          <div className={`${cardClass} flex flex-col items-center gap-2 py-12 text-center`}>
+            <p className="font-medium text-slate-700">Belum ada invoice yang kamu proses</p>
+          </div>
+        )}
+
+        {!isLoading && processedByMe.length > 0 && (
+          <div className={`${cardClass} overflow-x-auto p-0`}>
+            <table className="w-full min-w-[600px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <th className="px-4 py-3">ID</th>
+                  <th className="px-4 py-3">Pemasok</th>
+                  <th className="px-4 py-3">Tanggal</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processedByMe.map((inv: Invoice) => (
+                  <tr key={inv.id.toString()} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/finance/${inv.id}`}
+                        className="font-medium text-blue-600 hover:underline"
+                      >
+                        INV-{inv.id.toString().padStart(4, "0")}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-slate-700">{inv.supplierName}</td>
+                    <td className="px-4 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
+                    <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusBadgeClass[invoiceStatusLabel(inv.status)] ?? "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {invoiceStatusLabel(inv.status)}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
