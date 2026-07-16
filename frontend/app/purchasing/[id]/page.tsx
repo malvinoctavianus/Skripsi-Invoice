@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
+import { AddNftToWalletButton } from "@/components/AddNftToWalletButton";
 import { ApprovalStatusPanel } from "@/components/ApprovalStatusPanel";
 import { InvoiceDocument } from "@/components/InvoiceDocument";
 import { RoleGuard } from "@/components/RoleGuard";
@@ -60,6 +61,12 @@ function InvoiceDetail({ params }: { params: Promise<{ id: string }> }) {
       <div>
         <ApprovalStatusPanel invoice={invoice} />
       </div>
+
+      {invoice.status === InvoiceStatus.Approved && (
+        <div className="flex justify-end">
+          <AddNftToWalletButton tokenId={invoice.id} />
+        </div>
+      )}
 
       {isRejected && (
         <div className="flex justify-end">
