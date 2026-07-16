@@ -80,6 +80,7 @@ function FinanceDashboard() {
                   <th className="px-4 py-3">Pemasok</th>
                   <th className="px-4 py-3">Tanggal</th>
                   <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,6 +97,15 @@ function FinanceDashboard() {
                     <td className="px-4 py-3 text-slate-700">{inv.supplierName}</td>
                     <td className="px-4 py-3 text-slate-500">{formatDateTime(inv.invoiceDate)}</td>
                     <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusBadgeClass[invoiceStatusLabel(inv.status)] ?? "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {invoiceStatusLabel(inv.status)}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
