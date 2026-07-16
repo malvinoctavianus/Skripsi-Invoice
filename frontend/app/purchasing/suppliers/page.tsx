@@ -34,7 +34,7 @@ function SuppliersList() {
 
   return (
     <main className="flex w-full max-w-4xl flex-col gap-6 px-8 py-10">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Data Supplier</h1>
           <p className="mt-1 text-sm text-slate-500">
@@ -43,7 +43,7 @@ function SuppliersList() {
             membuat invoice — Admin perlu menyetujui supplier baru atau yang baru diedit.
           </p>
         </div>
-        <Link href="/purchasing/suppliers/new" className={primaryButtonClass}>
+        <Link href="/purchasing/suppliers/new" className={`${primaryButtonClass} shrink-0 whitespace-nowrap`}>
           + Tambah Supplier
         </Link>
       </div>
