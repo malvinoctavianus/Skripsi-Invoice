@@ -132,8 +132,8 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
   const dp = Number(dpAmount) || 0;
   const remaining = total - dp;
 
-  function updateItemPrice(index: number, unitPrice: string) {
-    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, unitPrice } : item)));
+  function updateItem(index: number, patch: Partial<Pick<ItemRow, "qty" | "unitPrice">>) {
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -159,6 +159,12 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
       return;
     }
 
+    for (const item of items) {
+      if (!(Number(item.qty) > 0)) {
+        setFormError(`Qty untuk "${item.name}" harus lebih dari 0.`);
+        return;
+      }
+    }
     if (dp > total) {
       setFormError("DP tidak boleh lebih besar dari total.");
       return;
@@ -237,7 +243,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium text-slate-700">Data Barang</span>
             <p className="text-xs text-slate-400">
-              Nama barang dan qty tidak bisa diubah saat revisi, hanya harga satuan.
+              Nama barang tidak bisa diubah saat revisi, hanya qty dan harga satuan.
             </p>
             <div className="flex flex-col gap-3">
               {items.map((item, index) => (
@@ -248,13 +254,19 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
                   </label>
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Qty
-                    <input value={item.qty} disabled className={`${inputClass} bg-slate-50 text-slate-400`} />
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.qty}
+                      onChange={(e) => updateItem(index, { qty: e.target.value })}
+                      className={inputClass}
+                    />
                   </label>
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Harga Satuan
                     <CurrencyInput
                       value={item.unitPrice}
-                      onChange={(raw) => updateItemPrice(index, raw)}
+                      onChange={(raw) => updateItem(index, { unitPrice: raw })}
                       placeholder="Rp 0"
                       className={inputClass}
                     />
