@@ -52,7 +52,7 @@ function AccountsList() {
                   <td className="px-4 py-3 text-slate-700">{user.username}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
                         roleBadgeClass[roleLabel(user.role)] ?? "bg-slate-100 text-slate-600"
                       }`}
                     >

@@ -21,7 +21,7 @@ export function InvoiceDocument({ invoice, headerRight }: { invoice: Invoice; he
           </p>
           <p className="text-sm text-slate-500">Tanggal: {formatDateTime(invoice.invoiceDate)}</p>
           <span
-            className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
+            className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
               statusBadgeClass[invoiceStatusLabel(invoice.status)] ?? "bg-slate-100 text-slate-600"
             }`}
           >

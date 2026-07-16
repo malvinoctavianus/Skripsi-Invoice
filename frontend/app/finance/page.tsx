@@ -99,7 +99,7 @@ function FinanceDashboard() {
                     <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
                           statusBadgeClass[invoiceStatusLabel(inv.status)] ?? "bg-slate-100 text-slate-600"
                         }`}
                       >
@@ -157,7 +157,7 @@ function FinanceDashboard() {
                     <td className="px-4 py-3 text-slate-700">{formatRupiah(inv.totalAmount)}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
                           statusBadgeClass[invoiceStatusLabel(inv.status)] ?? "bg-slate-100 text-slate-600"
                         }`}
                       >

@@ -90,7 +90,7 @@ function AdminSuppliers() {
                       <td className="px-4 py-3 text-slate-600">{supplier.alamat}</td>
                       <td className="px-4 py-3">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
                             statusBadgeClass[label] ?? "bg-slate-100 text-slate-600"
                           }`}
                         >
