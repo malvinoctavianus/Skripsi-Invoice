@@ -51,49 +51,39 @@ export function ApprovalStatusPanel({ invoice }: { invoice: Invoice }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="mb-3 text-sm font-semibold text-slate-800">Persetujuan Invoice</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
-              <th className="py-2 pr-3">Nama</th>
-              <th className="py-2 pr-3">Jabatan</th>
-              <th className="py-2 pr-3">Status</th>
-              <th className="py-2">Keterangan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ label, record, blocked }) => (
-              <tr key={label} className="border-b border-slate-100 last:border-0">
-                <td className="py-2.5 pr-3 text-slate-700">{record ? usernameFor(record.wallet) : "-"}</td>
-                <td className="py-2.5 pr-3 text-slate-700">{label}</td>
-                <td className="py-2.5 pr-3">
-                  {record ? (
-                    record.approved ? (
-                      <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600">
-                        ✔ Approved
-                        <span className="font-normal text-slate-400">
-                          ({formatDateTime(record.timestamp)})
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 font-medium text-red-600">
-                        ✘ Rejected
-                        <span className="font-normal text-slate-400">
-                          ({formatDateTime(record.timestamp)})
-                        </span>
-                      </span>
-                    )
-                  ) : blocked ? (
-                    <span className="text-slate-400">-</span>
-                  ) : (
-                    <span className="font-medium text-amber-600">Menunggu</span>
-                  )}
-                </td>
-                <td className="py-2.5 text-slate-600">{record?.note || "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex flex-col divide-y divide-slate-100">
+        {rows.map(({ label, record, blocked }) => (
+          <div key={label} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <div>
+                <p className="text-sm font-medium text-slate-800">
+                  {record ? usernameFor(record.wallet) : "-"}
+                </p>
+                <p className="text-xs text-slate-400">{label}</p>
+              </div>
+
+              {record ? (
+                record.approved ? (
+                  <span className="text-sm font-medium text-emerald-600">✔ Approved</span>
+                ) : (
+                  <span className="text-sm font-medium text-red-600">✘ Rejected</span>
+                )
+              ) : blocked ? (
+                <span className="text-sm text-slate-400">-</span>
+              ) : (
+                <span className="text-sm font-medium text-amber-600">Menunggu</span>
+              )}
+            </div>
+
+            {record && <p className="text-xs text-slate-400">{formatDateTime(record.timestamp)}</p>}
+            {record?.note && (
+              <p className="text-sm text-slate-600">
+                <span className="text-slate-400">Keterangan: </span>
+                {record.note}
+              </p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
