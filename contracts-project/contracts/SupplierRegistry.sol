@@ -113,6 +113,10 @@ contract SupplierRegistry {
         require(bytes(alamat).length > 0, "SupplierRegistry: address required");
 
         Supplier storage supplier = suppliers[id];
+        require(
+            supplier.status != SupplierStatus.Approved,
+            "SupplierRegistry: approved supplier cannot be edited"
+        );
 
         (, UserRegistry.Role role, bool isRegistered, ) = registry.getUser(msg.sender);
         require(isRegistered, "SupplierRegistry: wallet not registered");

@@ -111,9 +111,8 @@ describe("SupplierRegistry", function () {
     await expect(supplierRegistry.connect(purchasing2).addSupplier("PT A", "Jl. Baru")).to.not.be.reverted;
   });
 
-  it("lets the original Purchasing wallet or Admin edit a supplier, resets status to Pending, and keeps history", async function () {
+  it("lets the original Purchasing wallet or Admin edit a Pending supplier, resets status to Pending, and keeps history", async function () {
     await supplierRegistry.connect(purchasing1).addSupplier("PT A", "Jl. Lama");
-    await supplierRegistry.connect(admin).reviewSupplier(1, true, "ok");
 
     await expect(supplierRegistry.connect(purchasing1).editSupplier(1, "PT A Updated", "Jl. Baru"))
       .to.emit(supplierRegistry, "SupplierEdited")
@@ -133,6 +132,36 @@ describe("SupplierRegistry", function () {
     const supplier2 = await supplierRegistry.getSupplier(1);
     expect(supplier2.name).to.equal("PT A Final");
     expect((await supplierRegistry.getSupplierEditHistory(1)).length).to.equal(2);
+  });
+
+  it("rejects editing a supplier once it has been Approved", async function () {
+    await supplierRegistry.connect(purchasing1).addSupplier("PT A", "Jl. A");
+    await supplierRegistry.connect(admin).reviewSupplier(1, true, "ok");
+
+    await expect(
+      supplierRegistry.connect(purchasing1).editSupplier(1, "PT A Updated", "Jl. Baru")
+    ).to.be.revertedWith("SupplierRegistry: approved supplier cannot be edited");
+
+    await expect(
+      supplierRegistry.connect(admin).editSupplier(1, "PT A Updated", "Jl. Baru")
+    ).to.be.revertedWith("SupplierRegistry: approved supplier cannot be edited");
+  });
+
+  it("lets a rejected supplier be revised and resubmitted for Admin review again", async function () {
+    await supplierRegistry.connect(purchasing1).addSupplier("PT A", "Jl. Lama");
+    await supplierRegistry.connect(admin).reviewSupplier(1, false, "alamat kurang lengkap");
+
+    let supplier = await supplierRegistry.getSupplier(1);
+    expect(supplier.status).to.equal(Status.Rejected);
+
+    await supplierRegistry.connect(purchasing1).editSupplier(1, "PT A", "Jl. Lengkap No. 5");
+    supplier = await supplierRegistry.getSupplier(1);
+    expect(supplier.alamat).to.equal("Jl. Lengkap No. 5");
+    expect(supplier.status).to.equal(Status.Pending);
+
+    await expect(supplierRegistry.connect(admin).reviewSupplier(1, true, "sudah lengkap"))
+      .to.emit(supplierRegistry, "SupplierReviewed")
+      .withArgs(1, Status.Approved, admin.address, "sudah lengkap", anyValue);
   });
 
   it("rejects edits from a wallet that neither added the supplier nor is Admin", async function () {

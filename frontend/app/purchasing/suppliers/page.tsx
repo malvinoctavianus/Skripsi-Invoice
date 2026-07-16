@@ -40,7 +40,10 @@ function SuppliersList() {
           <p className="mt-1 text-sm text-slate-500">
             Semua supplier ({suppliers.length}). Hanya yang berstatus{" "}
             <span className="font-medium text-emerald-600">Approved</span> yang bisa dipilih saat
-            membuat invoice — Admin perlu menyetujui supplier baru atau yang baru diedit.
+            membuat invoice — Admin perlu menyetujui supplier baru atau yang baru diedit. Supplier
+            yang sudah <span className="font-medium text-emerald-600">Approved</span> tidak bisa
+            diedit lagi; supplier yang <span className="font-medium text-red-600">Ditolak</span>{" "}
+            masih bisa diajukan ulang.
           </p>
         </div>
         <Link href="/purchasing/suppliers/new" className={`${primaryButtonClass} shrink-0 whitespace-nowrap`}>
@@ -105,7 +108,8 @@ function SuppliersList() {
             <tbody>
               {list.map((supplier) => {
                 const label = supplierStatusLabel(supplier.status);
-                const canEdit = address?.toLowerCase() === supplier.addedBy.toLowerCase();
+                const isOwner = address?.toLowerCase() === supplier.addedBy.toLowerCase();
+                const canEdit = isOwner && supplier.status !== SupplierStatus.Approved;
                 return (
                   <tr key={supplier.id.toString()} className="border-b border-slate-100 last:border-0">
                     <td className="px-4 py-3 font-medium text-slate-700">{supplier.name}</td>
@@ -126,7 +130,7 @@ function SuppliersList() {
                           href={`/purchasing/suppliers/${supplier.id.toString()}/edit`}
                           className="text-sm font-medium text-blue-600 hover:underline"
                         >
-                          Edit
+                          {supplier.status === SupplierStatus.Rejected ? "Ajukan Ulang" : "Edit"}
                         </Link>
                       )}
                     </td>

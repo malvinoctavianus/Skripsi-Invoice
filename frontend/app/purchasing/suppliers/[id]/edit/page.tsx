@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useSupplier, useSupplierEditHistory } from "@/lib/useSuppliers";
-import { Role, SUPPLIER_REGISTRY_ABI, SUPPLIER_REGISTRY_ADDRESS } from "@/lib/contract";
+import { Role, SUPPLIER_REGISTRY_ABI, SUPPLIER_REGISTRY_ADDRESS, SupplierStatus } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatDateTime } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
@@ -81,6 +81,17 @@ function EditSupplierForm({ params }: { params: Promise<{ id: string }> }) {
     );
   }
 
+  if (supplier.status === SupplierStatus.Approved) {
+    return (
+      <main className="flex w-full max-w-lg flex-col gap-4 px-8 py-10">
+        {backLink}
+        <p className="text-sm text-red-600">
+          Supplier ini sudah Approved dan tidak bisa diedit lagi.
+        </p>
+      </main>
+    );
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
@@ -112,11 +123,14 @@ function EditSupplierForm({ params }: { params: Promise<{ id: string }> }) {
 
       <div className={cardClass}>
         <div className="mb-6">
-          <h1 className="text-lg font-semibold text-slate-900">Edit Supplier</h1>
+          <h1 className="text-lg font-semibold text-slate-900">
+            {supplier.status === SupplierStatus.Rejected ? "Ajukan Ulang Supplier" : "Edit Supplier"}
+          </h1>
           <p className="mt-1 text-sm text-slate-500">
             Perubahan tersimpan permanen di blockchain. Data lama tidak hilang — tetap tercatat
-            sebagai riwayat di bawah. Setelah diedit, supplier ini perlu disetujui ulang oleh
-            Admin sebelum bisa dipilih lagi saat membuat invoice.
+            sebagai riwayat di bawah. Setelah disimpan, supplier ini kembali berstatus Menunggu
+            Persetujuan dan perlu direview ulang oleh Admin sebelum bisa dipilih saat membuat
+            invoice.
           </p>
         </div>
 
