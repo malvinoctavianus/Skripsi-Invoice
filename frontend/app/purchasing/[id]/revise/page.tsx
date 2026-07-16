@@ -255,10 +255,10 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Qty
                     <input
-                      type="number"
-                      min="1"
+                      type="text"
+                      inputMode="numeric"
                       value={item.qty}
-                      onChange={(e) => updateItem(index, { qty: e.target.value })}
+                      onChange={(e) => updateItem(index, { qty: e.target.value.replace(/[^0-9]/g, "") })}
                       className={inputClass}
                     />
                   </label>
