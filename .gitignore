@@ -2,3 +2,4 @@ contracts-project/node_modules
 contracts-project/artifacts
 contracts-project/cache
 contracts-project/.env
+.vercel
