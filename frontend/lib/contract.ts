@@ -1,6 +1,7 @@
 import type { Abi } from "viem";
 import userRegistryAbi from "./UserRegistryAbi.json";
 import invoiceApprovalAbi from "./InvoiceApprovalAbi.json";
+import supplierRegistryAbi from "./SupplierRegistryAbi.json";
 
 export const USER_REGISTRY_ADDRESS = process.env
   .NEXT_PUBLIC_USER_REGISTRY_ADDRESS as `0x${string}` | undefined;
@@ -11,6 +12,11 @@ export const INVOICE_ADDRESS = process.env
   .NEXT_PUBLIC_INVOICE_ADDRESS as `0x${string}` | undefined;
 
 export const INVOICE_ABI = invoiceApprovalAbi as Abi;
+
+export const SUPPLIER_REGISTRY_ADDRESS = process.env
+  .NEXT_PUBLIC_SUPPLIER_REGISTRY_ADDRESS as `0x${string}` | undefined;
+
+export const SUPPLIER_REGISTRY_ABI = supplierRegistryAbi as Abi;
 
 export enum Role {
   None = 0,
@@ -85,4 +91,12 @@ export type Invoice = {
   status: InvoiceStatus;
   items: readonly InvoiceItem[];
   history: readonly ApprovalRecord[];
+};
+
+export type Supplier = {
+  id: bigint;
+  name: string;
+  alamat: string;
+  addedBy: `0x${string}`;
+  addedAt: bigint;
 };

@@ -9,6 +9,7 @@ import { CurrencyInput } from "@/components/CurrencyInput";
 import { RoleGuard } from "@/components/RoleGuard";
 import { INVOICE_ABI, INVOICE_ADDRESS, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
+import { useAllSuppliers } from "@/lib/useSuppliers";
 import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
@@ -61,6 +62,7 @@ function NewInvoiceForm() {
   const minDate = addDays(now, -MAX_DAYS_BACK);
   const maxDate = addDays(now, MAX_DAYS_FORWARD);
 
+  const { suppliers } = useAllSuppliers();
   const [draft] = useState(() => loadDraft());
   const [supplierName, setSupplierName] = useState(draft?.supplierName ?? "");
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -229,12 +231,33 @@ function NewInvoiceForm() {
 
           <label className={labelClass}>
             Nama Pemasok
-            <input
-              value={supplierName}
-              onChange={(e) => setSupplierName(e.target.value)}
-              placeholder="mis. PT Sumber Makmur"
-              className={inputClass}
-            />
+            {suppliers.length === 0 ? (
+              <>
+                <select disabled className={`${inputClass} bg-slate-50 text-slate-400`}>
+                  <option>Belum ada data supplier</option>
+                </select>
+                <span className="text-xs font-normal text-slate-400">
+                  Tambahkan supplier dulu di menu{" "}
+                  <Link href="/purchasing/suppliers/new" className="text-blue-600 hover:underline">
+                    Data Supplier
+                  </Link>
+                  .
+                </span>
+              </>
+            ) : (
+              <select
+                value={supplierName}
+                onChange={(e) => setSupplierName(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Pilih supplier...</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id.toString()} value={supplier.name}>
+                    {supplier.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </label>
 
           <div className="flex flex-col gap-2">

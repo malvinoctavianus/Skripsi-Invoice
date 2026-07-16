@@ -58,9 +58,20 @@ const UserShieldIcon = (
   </svg>
 );
 
+const BuildingIcon = (
+  <svg {...iconProps}>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3.75 21h16.5M4.5 3h9v18h-9V3Zm9 6.75h6v11.25h-6M7.5 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m-1.5 3h1.5"
+    />
+  </svg>
+);
+
 export const PURCHASING_NAV: NavItem[] = [
   { href: "/purchasing", label: "Dashboard", icon: GridIcon },
   { href: "/purchasing/new", label: "Tambah Invoice", icon: PlusIcon },
+  { href: "/purchasing/suppliers", label: "Data Supplier", icon: BuildingIcon },
 ];
 
 export const FINANCE_NAV: NavItem[] = [{ href: "/finance", label: "Dashboard", icon: GridIcon }];
