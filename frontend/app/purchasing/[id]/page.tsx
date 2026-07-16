@@ -7,8 +7,9 @@ import { InvoiceDocument } from "@/components/InvoiceDocument";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ViewPdfButton } from "@/components/ViewPdfButton";
 import { useInvoice } from "@/lib/useInvoices";
-import { Invoice, Role } from "@/lib/contract";
+import { Invoice, InvoiceStatus, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
+import { primaryButtonClass } from "@/lib/ui";
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
@@ -47,6 +48,9 @@ function InvoiceDetail({ params }: { params: Promise<{ id: string }> }) {
     );
   }
 
+  const isRejected =
+    invoice.status === InvoiceStatus.RejectedByFinance || invoice.status === InvoiceStatus.RejectedByManager;
+
   return (
     <main className="flex w-full max-w-3xl flex-col gap-6 px-8 py-10">
       {backLink}
@@ -58,6 +62,14 @@ function InvoiceDetail({ params }: { params: Promise<{ id: string }> }) {
           <ApprovalStatusPanel invoice={invoice} />
         </div>
       </div>
+
+      {isRejected && (
+        <div className="flex justify-end">
+          <Link href={`/purchasing/${invoice.id}/revise`} className={primaryButtonClass}>
+            Revisi &amp; Ajukan Ulang
+          </Link>
+        </div>
+      )}
     </main>
   );
 }

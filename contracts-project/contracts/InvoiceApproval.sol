@@ -61,6 +61,7 @@ contract InvoiceApproval is ERC721 {
     event InvoiceCreated(uint256 indexed id, address indexed purchasing, uint256 totalAmount, uint256 timestamp);
     event InvoiceApprovalUpdated(uint256 indexed id, address indexed wallet, Status status, uint256 timestamp);
     event InvoiceCertificateMinted(uint256 indexed id, address indexed purchasing, uint256 timestamp);
+    event InvoiceRevised(uint256 indexed id, address indexed purchasing, uint256 totalAmount, uint256 timestamp);
 
     modifier onlyRole(UserRegistry.Role role) {
         (, UserRegistry.Role userRole, bool isRegistered, ) = registry.getUser(msg.sender);
@@ -107,6 +108,49 @@ contract InvoiceApproval is ERC721 {
         invoicesByPurchasing[msg.sender].push(id);
 
         emit InvoiceCreated(id, msg.sender, total, block.timestamp);
+    }
+
+    /// @notice Lets the original Purchasing wallet fix and resubmit a rejected invoice under
+    ///         the same id, so the rejection stays visible in `history` instead of being lost.
+    function reviseInvoice(
+        uint256 id,
+        string calldata supplierName,
+        uint256 invoiceDate,
+        InvoiceItem[] calldata items,
+        uint256 dpAmount
+    ) external {
+        Invoice storage inv = _requireInvoice(id);
+        require(inv.purchasing == msg.sender, "InvoiceApproval: not the invoice owner");
+        require(
+            inv.status == Status.RejectedByFinance || inv.status == Status.RejectedByManager,
+            "InvoiceApproval: invoice is not rejected"
+        );
+        require(bytes(supplierName).length > 0, "InvoiceApproval: supplier name required");
+        require(items.length > 0, "InvoiceApproval: at least one item required");
+
+        uint256 total = 0;
+        for (uint256 i = 0; i < items.length; i++) {
+            require(items[i].qty > 0, "InvoiceApproval: item qty must be > 0");
+            total += items[i].qty * items[i].unitPrice;
+        }
+        require(dpAmount <= total, "InvoiceApproval: DP exceeds total amount");
+
+        inv.supplierName = supplierName;
+        inv.invoiceDate = invoiceDate;
+        inv.dpAmount = dpAmount;
+        inv.totalAmount = total;
+        inv.status = Status.PendingFinance;
+
+        delete inv.items;
+        for (uint256 i = 0; i < items.length; i++) {
+            inv.items.push(items[i]);
+        }
+
+        inv.history.push(
+            ApprovalRecord(msg.sender, "Purchasing", true, "Invoice direvisi dan diajukan ulang", block.timestamp)
+        );
+
+        emit InvoiceRevised(id, msg.sender, total, block.timestamp);
     }
 
     function approveByFinance(uint256 id, string calldata note) external onlyRole(UserRegistry.Role.Finance) {
