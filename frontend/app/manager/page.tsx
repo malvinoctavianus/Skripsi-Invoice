@@ -81,7 +81,7 @@ function ManagerDashboard() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/manager/${inv.id}`}
-                        className="font-medium text-blue-600 hover:underline"
+                        className="whitespace-nowrap font-medium text-blue-600 hover:underline"
                       >
                         INV-{inv.id.toString().padStart(4, "0")}
                       </Link>
@@ -133,7 +133,7 @@ function ManagerDashboard() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/manager/${inv.id}`}
-                        className="font-medium text-blue-600 hover:underline"
+                        className="whitespace-nowrap font-medium text-blue-600 hover:underline"
                       >
                         INV-{inv.id.toString().padStart(4, "0")}
                       </Link>
