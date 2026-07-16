@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import { INVOICE_ADDRESS } from "@/lib/contract";
 import { secondaryButtonClass } from "@/lib/ui";
 
@@ -12,19 +13,29 @@ declare global {
   }
 }
 
+function storageKey(address: string, tokenId: bigint) {
+  return `nft-added-to-metamask-${address.toLowerCase()}-${tokenId.toString()}`;
+}
+
 /** One-click prompt for MetaMask to add this invoice's NFT certificate to the wallet's
  * NFT tab. MetaMask (and every wallet) requires explicit user confirmation before adding
- * an asset - no dApp can inject it silently - so this is as automatic as it can get. */
+ * an asset - no dApp can inject it silently - so this is as automatic as it can get.
+ * Once successfully added, that fact is remembered per wallet+token so the button won't
+ * offer to add it again. */
 export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
+  const { address } = useAccount();
   const [status, setStatus] = useState<"idle" | "pending" | "added" | "error">("idle");
   const [hasWallet, setHasWallet] = useState(false);
 
   useEffect(() => {
     setHasWallet(Boolean(window.ethereum));
-  }, []);
+    if (address && window.localStorage.getItem(storageKey(address, tokenId))) {
+      setStatus("added");
+    }
+  }, [address, tokenId]);
 
   async function handleClick() {
-    if (!window.ethereum || !INVOICE_ADDRESS) return;
+    if (!window.ethereum || !INVOICE_ADDRESS || !address) return;
     setStatus("pending");
     try {
       const added = await window.ethereum.request({
@@ -37,7 +48,12 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
           },
         },
       });
-      setStatus(added ? "added" : "idle");
+      if (added) {
+        window.localStorage.setItem(storageKey(address, tokenId), "1");
+        setStatus("added");
+      } else {
+        setStatus("idle");
+      }
     } catch {
       setStatus("error");
     }
@@ -47,10 +63,18 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
 
   return (
     <div className="flex flex-col items-start gap-1">
-      <button type="button" onClick={handleClick} disabled={status === "pending"} className={secondaryButtonClass}>
-        {status === "pending" ? "Menunggu konfirmasi MetaMask..." : "+ Tambahkan Sertifikat NFT ke MetaMask"}
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={status === "pending" || status === "added"}
+        className={`${secondaryButtonClass} disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {status === "pending"
+          ? "Menunggu konfirmasi MetaMask..."
+          : status === "added"
+            ? "✔ Sudah Ditambahkan ke MetaMask"
+            : "+ Tambahkan Sertifikat NFT ke MetaMask"}
       </button>
-      {status === "added" && <p className="text-xs text-emerald-600">Sertifikat NFT ditambahkan ke MetaMask.</p>}
       {status === "error" && <p className="text-xs text-red-600">Gagal menambahkan, coba lagi.</p>}
     </div>
   );
