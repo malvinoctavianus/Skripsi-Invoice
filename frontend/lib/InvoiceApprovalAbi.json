@@ -433,6 +433,11 @@
         "internalType": "uint256",
         "name": "dpAmount",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "keterangan",
+        "type": "string"
       }
     ],
     "name": "createInvoice",
@@ -516,6 +521,11 @@
             "internalType": "enum InvoiceApproval.Status",
             "name": "status",
             "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "keterangan",
+            "type": "string"
           },
           {
             "components": [
@@ -760,6 +770,11 @@
         "internalType": "uint256",
         "name": "dpAmount",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "keterangan",
+        "type": "string"
       }
     ],
     "name": "reviseInvoice",

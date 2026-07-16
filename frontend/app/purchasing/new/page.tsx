@@ -20,6 +20,7 @@ type Draft = {
   selectedDate: string;
   items: ItemRow[];
   dpAmount: string;
+  keterangan: string;
 };
 
 const DRAFT_KEY = "purchasing-invoice-draft";
@@ -77,6 +78,7 @@ function NewInvoiceForm() {
     draft?.items ?? [{ name: "", qty: "1", unitPrice: "0" }]
   );
   const [dpAmount, setDpAmount] = useState(draft?.dpAmount ?? "0");
+  const [keterangan, setKeterangan] = useState(draft?.keterangan ?? "");
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
@@ -85,9 +87,9 @@ function NewInvoiceForm() {
   });
 
   useEffect(() => {
-    const data: Draft = { supplierName, selectedDate, items, dpAmount };
+    const data: Draft = { supplierName, selectedDate, items, dpAmount, keterangan };
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-  }, [supplierName, selectedDate, items, dpAmount]);
+  }, [supplierName, selectedDate, items, dpAmount, keterangan]);
 
   useEffect(() => {
     if (!isSuccess || !receipt) return;
@@ -142,6 +144,10 @@ function NewInvoiceForm() {
       setFormError("Nama pemasok wajib diisi.");
       return;
     }
+    if (keterangan.trim().length === 0) {
+      setFormError("Keterangan wajib diisi.");
+      return;
+    }
 
     const datePart = new Date(selectedDate);
     if (Number.isNaN(datePart.getTime())) {
@@ -188,6 +194,7 @@ function NewInvoiceForm() {
           unitPrice: BigInt(item.unitPrice || "0"),
         })),
         BigInt(dp),
+        keterangan.trim(),
       ],
     });
   }
@@ -307,6 +314,17 @@ function NewInvoiceForm() {
               + Tambah Item
             </button>
           </div>
+
+          <label className={labelClass}>
+            Keterangan
+            <textarea
+              value={keterangan}
+              onChange={(e) => setKeterangan(e.target.value)}
+              rows={3}
+              placeholder="mis. Pembelian ATK untuk kebutuhan operasional bulan ini"
+              className={inputClass}
+            />
+          </label>
 
           <label className={labelClass}>
             DP (Opsional)

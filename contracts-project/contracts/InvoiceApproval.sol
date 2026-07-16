@@ -47,6 +47,7 @@ contract InvoiceApproval is ERC721 {
         uint256 dpAmount;
         uint256 totalAmount;
         Status status;
+        string keterangan;
         InvoiceItem[] items;
         ApprovalRecord[] history;
     }
@@ -78,10 +79,12 @@ contract InvoiceApproval is ERC721 {
         string calldata supplierName,
         uint256 invoiceDate,
         InvoiceItem[] calldata items,
-        uint256 dpAmount
+        uint256 dpAmount,
+        string calldata keterangan
     ) external onlyRole(UserRegistry.Role.Purchasing) returns (uint256 id) {
         require(bytes(supplierName).length > 0, "InvoiceApproval: supplier name required");
         require(items.length > 0, "InvoiceApproval: at least one item required");
+        require(bytes(keterangan).length > 0, "InvoiceApproval: keterangan required");
 
         uint256 total = 0;
         for (uint256 i = 0; i < items.length; i++) {
@@ -101,6 +104,7 @@ contract InvoiceApproval is ERC721 {
         inv.dpAmount = dpAmount;
         inv.totalAmount = total;
         inv.status = Status.PendingFinance;
+        inv.keterangan = keterangan;
         for (uint256 i = 0; i < items.length; i++) {
             inv.items.push(items[i]);
         }
@@ -117,7 +121,8 @@ contract InvoiceApproval is ERC721 {
         string calldata supplierName,
         uint256 invoiceDate,
         InvoiceItem[] calldata items,
-        uint256 dpAmount
+        uint256 dpAmount,
+        string calldata keterangan
     ) external {
         Invoice storage inv = _requireInvoice(id);
         require(inv.purchasing == msg.sender, "InvoiceApproval: not the invoice owner");
@@ -127,6 +132,7 @@ contract InvoiceApproval is ERC721 {
         );
         require(bytes(supplierName).length > 0, "InvoiceApproval: supplier name required");
         require(items.length > 0, "InvoiceApproval: at least one item required");
+        require(bytes(keterangan).length > 0, "InvoiceApproval: keterangan required");
 
         uint256 total = 0;
         for (uint256 i = 0; i < items.length; i++) {
@@ -140,6 +146,7 @@ contract InvoiceApproval is ERC721 {
         inv.dpAmount = dpAmount;
         inv.totalAmount = total;
         inv.status = Status.PendingFinance;
+        inv.keterangan = keterangan;
 
         delete inv.items;
         for (uint256 i = 0; i < items.length; i++) {

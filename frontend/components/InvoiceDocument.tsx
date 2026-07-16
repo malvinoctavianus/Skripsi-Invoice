@@ -41,6 +41,12 @@ export function InvoiceDocument({ invoice, headerRight }: { invoice: Invoice; he
         </div>
       )}
 
+      {invoice.keterangan && (
+        <p className="mb-4 text-sm text-slate-600">
+          <span className="font-medium text-slate-700">Keterangan:</span> {invoice.keterangan}
+        </p>
+      )}
+
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] border-collapse text-sm">
           <thead>

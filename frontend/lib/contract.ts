@@ -89,6 +89,7 @@ export type Invoice = {
   dpAmount: bigint;
   totalAmount: bigint;
   status: InvoiceStatus;
+  keterangan: string;
   items: readonly InvoiceItem[];
   history: readonly ApprovalRecord[];
 };

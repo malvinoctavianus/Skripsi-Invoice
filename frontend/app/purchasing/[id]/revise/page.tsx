@@ -51,6 +51,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
   const [selectedDate, setSelectedDate] = useState(toDateValue(now));
   const [items, setItems] = useState<ItemRow[]>([{ name: "", qty: "1", unitPrice: "0" }]);
   const [dpAmount, setDpAmount] = useState("0");
+  const [keterangan, setKeterangan] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -68,6 +69,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
       }))
     );
     setDpAmount(invoice.dpAmount.toString());
+    setKeterangan(invoice.keterangan);
     setInitialized(true);
   }, [invoice, initialized]);
 
@@ -165,6 +167,10 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
         return;
       }
     }
+    if (keterangan.trim().length === 0) {
+      setFormError("Keterangan wajib diisi.");
+      return;
+    }
     if (dp > total) {
       setFormError("DP tidak boleh lebih besar dari total.");
       return;
@@ -184,6 +190,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
           unitPrice: BigInt(item.unitPrice || "0"),
         })),
         BigInt(dp),
+        keterangan.trim(),
       ],
     });
   }
@@ -275,6 +282,16 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
               ))}
             </div>
           </div>
+
+          <label className={labelClass}>
+            Keterangan
+            <textarea
+              value={keterangan}
+              onChange={(e) => setKeterangan(e.target.value)}
+              rows={3}
+              className={inputClass}
+            />
+          </label>
 
           <label className={labelClass}>
             DP (Opsional)

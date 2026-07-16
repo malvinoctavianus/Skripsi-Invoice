@@ -46,6 +46,14 @@ async function buildInvoicePdf(invoice: Invoice) {
   doc.text(formatDateTime(invoice.invoiceDate), valueX, y);
   doc.text(invoice.supplierName, rightValueX, y, { maxWidth: pageWidth - rightValueX - marginX });
 
+  if (invoice.keterangan) {
+    y += 7;
+    doc.setFont("helvetica", "bold");
+    doc.text("Keterangan", labelX, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(invoice.keterangan, valueX, y, { maxWidth: pageWidth - valueX - marginX });
+  }
+
   y += 12;
 
   autoTable(doc, {
