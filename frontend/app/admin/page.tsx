@@ -19,7 +19,7 @@ export default function AdminPage() {
 }
 
 function AdminDashboard() {
-  const { address, username } = useCurrentUser();
+  const { username } = useCurrentUser();
   const { invoices } = useAllInvoices();
   const { users } = useAllUsers();
 
@@ -33,8 +33,7 @@ function AdminDashboard() {
       <div>
         <h1 className="text-xl font-semibold text-slate-900">Dashboard Admin</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Masuk sebagai <strong className="text-slate-700">{username || "Admin"}</strong>{" "}
-          &middot; <span className="font-mono text-xs">{address}</span>
+          Masuk sebagai <strong className="text-slate-700">{username || "Admin"}</strong>
         </p>
       </div>
 
