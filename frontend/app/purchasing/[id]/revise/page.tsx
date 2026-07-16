@@ -9,9 +9,8 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { useInvoice } from "@/lib/useInvoices";
 import { INVOICE_ABI, INVOICE_ADDRESS, Invoice, InvoiceStatus, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
-import { useApprovedSuppliers } from "@/lib/useSuppliers";
 import { formatRupiah } from "@/lib/format";
-import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
+import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
 
 type ItemRow = { name: string; qty: string; unitPrice: string };
 
@@ -47,7 +46,6 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
   const [now] = useState(() => new Date());
   const minDate = addDays(now, -MAX_DAYS_BACK);
   const maxDate = addDays(now, MAX_DAYS_FORWARD);
-  const { suppliers } = useApprovedSuppliers();
 
   const [supplierName, setSupplierName] = useState("");
   const [selectedDate, setSelectedDate] = useState(toDateValue(now));
@@ -134,16 +132,8 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
   const dp = Number(dpAmount) || 0;
   const remaining = total - dp;
 
-  function updateItem(index: number, patch: Partial<ItemRow>) {
-    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
-  }
-
-  function addItem() {
-    setItems((prev) => [...prev, { name: "", qty: "1", unitPrice: "0" }]);
-  }
-
-  function removeItem(index: number) {
-    setItems((prev) => prev.filter((_, i) => i !== index));
+  function updateItemPrice(index: number, unitPrice: string) {
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, unitPrice } : item)));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -154,11 +144,6 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
       setFormError("Alamat smart contract invoice belum diset (NEXT_PUBLIC_INVOICE_ADDRESS).");
       return;
     }
-    if (supplierName.trim().length === 0) {
-      setFormError("Nama pemasok wajib diisi.");
-      return;
-    }
-
     const datePart = new Date(selectedDate);
     if (Number.isNaN(datePart.getTime())) {
       setFormError("Tanggal tidak valid.");
@@ -174,17 +159,6 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
       return;
     }
 
-    const validItems = items.filter((item) => item.name.trim().length > 0);
-    if (validItems.length === 0) {
-      setFormError("Minimal satu barang harus diisi.");
-      return;
-    }
-    for (const item of validItems) {
-      if (!(Number(item.qty) > 0)) {
-        setFormError(`Qty untuk "${item.name}" harus lebih dari 0.`);
-        return;
-      }
-    }
     if (dp > total) {
       setFormError("DP tidak boleh lebih besar dari total.");
       return;
@@ -196,10 +170,10 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
       functionName: "reviseInvoice",
       args: [
         inv.id,
-        supplierName.trim(),
+        supplierName,
         BigInt(Math.floor(invoiceDateTime.getTime() / 1000)),
-        validItems.map((item) => ({
-          name: item.name.trim(),
+        items.map((item) => ({
+          name: item.name,
           qty: BigInt(item.qty),
           unitPrice: BigInt(item.unitPrice || "0"),
         })),
@@ -254,81 +228,40 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
 
           <label className={labelClass}>
             Nama Pemasok
-            {suppliers.length === 0 ? (
-              <>
-                <select disabled className={`${inputClass} bg-slate-50 text-slate-400`}>
-                  <option>Belum ada supplier yang disetujui Admin</option>
-                </select>
-                <span className="text-xs font-normal text-slate-400">
-                  Tambahkan supplier dulu di menu{" "}
-                  <Link href="/purchasing/suppliers/new" className="text-blue-600 hover:underline">
-                    Data Supplier
-                  </Link>{" "}
-                  dan tunggu disetujui Admin.
-                </span>
-              </>
-            ) : (
-              <select
-                value={supplierName}
-                onChange={(e) => setSupplierName(e.target.value)}
-                className={inputClass}
-              >
-                <option value="">Pilih supplier...</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id.toString()} value={supplier.name}>
-                    {supplier.name}
-                  </option>
-                ))}
-              </select>
-            )}
+            <input value={supplierName} disabled className={`${inputClass} bg-slate-50 text-slate-400`} />
+            <span className="text-xs font-normal text-slate-400">
+              Tidak bisa diubah saat revisi. Kalau nama pemasoknya memang salah, buat invoice baru.
+            </span>
           </label>
 
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium text-slate-700">Data Barang</span>
+            <p className="text-xs text-slate-400">
+              Nama barang dan qty tidak bisa diubah saat revisi, hanya harga satuan.
+            </p>
             <div className="flex flex-col gap-3">
               {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-[1fr_80px_120px_auto] items-end gap-2">
+                <div key={index} className="grid grid-cols-[1fr_80px_120px] items-end gap-2">
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Nama Barang
-                    <input
-                      value={item.name}
-                      onChange={(e) => updateItem(index, { name: e.target.value })}
-                      className={inputClass}
-                    />
+                    <input value={item.name} disabled className={`${inputClass} bg-slate-50 text-slate-400`} />
                   </label>
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Qty
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.qty}
-                      onChange={(e) => updateItem(index, { qty: e.target.value })}
-                      className={inputClass}
-                    />
+                    <input value={item.qty} disabled className={`${inputClass} bg-slate-50 text-slate-400`} />
                   </label>
                   <label className="flex flex-col gap-1 text-xs text-slate-500">
                     Harga Satuan
                     <CurrencyInput
                       value={item.unitPrice}
-                      onChange={(raw) => updateItem(index, { unitPrice: raw })}
+                      onChange={(raw) => updateItemPrice(index, raw)}
                       placeholder="Rp 0"
                       className={inputClass}
                     />
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(index)}
-                    disabled={items.length === 1}
-                    className={`${secondaryButtonClass} h-fit disabled:opacity-30`}
-                  >
-                    Hapus
-                  </button>
                 </div>
               ))}
             </div>
-            <button type="button" onClick={addItem} className={`${secondaryButtonClass} self-start`}>
-              + Tambah Item
-            </button>
           </div>
 
           <label className={labelClass}>
