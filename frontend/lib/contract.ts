@@ -93,10 +93,42 @@ export type Invoice = {
   history: readonly ApprovalRecord[];
 };
 
+export enum SupplierStatus {
+  Pending = 0,
+  Approved = 1,
+  Rejected = 2,
+}
+
+export function supplierStatusLabel(status: SupplierStatus | number): string {
+  switch (status) {
+    case SupplierStatus.Pending:
+      return "Menunggu Persetujuan";
+    case SupplierStatus.Approved:
+      return "Approved";
+    case SupplierStatus.Rejected:
+      return "Ditolak";
+    default:
+      return "Unknown";
+  }
+}
+
 export type Supplier = {
   id: bigint;
   name: string;
   alamat: string;
   addedBy: `0x${string}`;
   addedAt: bigint;
+  lastEditedBy: `0x${string}`;
+  lastEditedAt: bigint;
+  status: SupplierStatus;
+  reviewedBy: `0x${string}`;
+  reviewedAt: bigint;
+  reviewNote: string;
+};
+
+export type SupplierEdit = {
+  name: string;
+  alamat: string;
+  editedBy: `0x${string}`;
+  editedAt: bigint;
 };

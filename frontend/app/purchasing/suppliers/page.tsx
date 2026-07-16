@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useAccount } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useAllSuppliers } from "@/lib/useSuppliers";
-import { Role } from "@/lib/contract";
+import { Role, supplierStatusLabel } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatDateTime } from "@/lib/format";
-import { cardClass, primaryButtonClass } from "@/lib/ui";
+import { cardClass, primaryButtonClass, statusBadgeClass } from "@/lib/ui";
 
 export default function SuppliersPage() {
   return (
@@ -17,6 +18,7 @@ export default function SuppliersPage() {
 }
 
 function SuppliersList() {
+  const { address } = useAccount();
   const { suppliers, isLoading } = useAllSuppliers();
 
   return (
@@ -25,7 +27,9 @@ function SuppliersList() {
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Data Supplier</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Daftar supplier yang bisa dipilih saat membuat invoice ({suppliers.length}).
+            Semua supplier ({suppliers.length}). Hanya yang berstatus{" "}
+            <span className="font-medium text-emerald-600">Approved</span> yang bisa dipilih saat
+            membuat invoice — Admin perlu menyetujui supplier baru atau yang baru diedit.
           </p>
         </div>
         <Link href="/purchasing/suppliers/new" className={primaryButtonClass}>
@@ -46,22 +50,47 @@ function SuppliersList() {
 
       {!isLoading && suppliers.length > 0 && (
         <div className={`${cardClass} overflow-x-auto p-0`}>
-          <table className="w-full min-w-[560px] border-collapse text-sm">
+          <table className="w-full min-w-[680px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
                 <th className="px-4 py-3">Nama Supplier</th>
                 <th className="px-4 py-3">Alamat</th>
+                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Ditambahkan</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {suppliers.map((supplier) => (
-                <tr key={supplier.id.toString()} className="border-b border-slate-100 last:border-0">
-                  <td className="px-4 py-3 font-medium text-slate-700">{supplier.name}</td>
-                  <td className="px-4 py-3 text-slate-600">{supplier.alamat}</td>
-                  <td className="px-4 py-3 text-slate-500">{formatDateTime(supplier.addedAt)}</td>
-                </tr>
-              ))}
+              {suppliers.map((supplier) => {
+                const label = supplierStatusLabel(supplier.status);
+                const canEdit = address?.toLowerCase() === supplier.addedBy.toLowerCase();
+                return (
+                  <tr key={supplier.id.toString()} className="border-b border-slate-100 last:border-0">
+                    <td className="px-4 py-3 font-medium text-slate-700">{supplier.name}</td>
+                    <td className="px-4 py-3 text-slate-600">{supplier.alamat}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          statusBadgeClass[label] ?? "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">{formatDateTime(supplier.addedAt)}</td>
+                    <td className="px-4 py-3 text-right">
+                      {canEdit && (
+                        <Link
+                          href={`/purchasing/suppliers/${supplier.id.toString()}/edit`}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          Edit
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

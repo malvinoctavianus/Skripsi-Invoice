@@ -82,6 +82,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: GridIcon },
   { href: "/register", label: "Manajemen User", icon: UserShieldIcon },
   { href: "/admin/accounts", label: "Akun Terdaftar", icon: UsersIcon },
+  { href: "/admin/suppliers", label: "Persetujuan Supplier", icon: BuildingIcon },
   { href: "/admin/history", label: "History Transaksi", icon: ClockIcon },
   { href: "/admin/settings", label: "Edit Tampilan", icon: PenIcon },
 ];

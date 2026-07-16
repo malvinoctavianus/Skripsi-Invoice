@@ -31,4 +31,6 @@ export const statusBadgeClass: Record<string, string> = {
   Approved: "bg-emerald-100 text-emerald-700",
   "Ditolak Finance": "bg-red-100 text-red-700",
   "Ditolak Manager": "bg-red-100 text-red-700",
+  "Menunggu Persetujuan": "bg-amber-100 text-amber-700",
+  Ditolak: "bg-red-100 text-red-700",
 };

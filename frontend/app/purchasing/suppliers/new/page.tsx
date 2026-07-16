@@ -67,8 +67,8 @@ function NewSupplierForm() {
         <div className="mb-6">
           <h1 className="text-lg font-semibold text-slate-900">Tambah Supplier</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Supplier ini akan tersimpan permanen di blockchain dan langsung bisa dipilih saat
-            membuat invoice.
+            Supplier ini akan tersimpan permanen di blockchain. Sebelum bisa dipilih saat membuat
+            invoice, data ini perlu disetujui dulu oleh Admin.
           </p>
         </div>
 

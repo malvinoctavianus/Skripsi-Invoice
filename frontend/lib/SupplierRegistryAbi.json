@@ -42,6 +42,74 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "editedBy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "SupplierEdited",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum SupplierRegistry.SupplierStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "reviewedBy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "note",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "SupplierReviewed",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -62,6 +130,29 @@
         "type": "uint256"
       }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "alamat",
+        "type": "string"
+      }
+    ],
+    "name": "editSupplier",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -95,6 +186,106 @@
             "internalType": "uint256",
             "name": "addedAt",
             "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "lastEditedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastEditedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum SupplierRegistry.SupplierStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "reviewedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "reviewedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "reviewNote",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct SupplierRegistry.Supplier[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getApprovedSuppliers",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "alamat",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "addedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "addedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "lastEditedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastEditedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum SupplierRegistry.SupplierStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "reviewedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "reviewedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "reviewNote",
+            "type": "string"
           }
         ],
         "internalType": "struct SupplierRegistry.Supplier[]",
@@ -141,11 +332,82 @@
             "internalType": "uint256",
             "name": "addedAt",
             "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "lastEditedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastEditedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum SupplierRegistry.SupplierStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "reviewedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "reviewedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "reviewNote",
+            "type": "string"
           }
         ],
         "internalType": "struct SupplierRegistry.Supplier",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getSupplierEditHistory",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "alamat",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "editedBy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "editedAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct SupplierRegistry.SupplierEdit[]",
+        "name": "",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -175,6 +437,29 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "approve",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "note",
+        "type": "string"
+      }
+    ],
+    "name": "reviewSupplier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

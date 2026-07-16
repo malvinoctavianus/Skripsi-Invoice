@@ -9,7 +9,7 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { useInvoice } from "@/lib/useInvoices";
 import { INVOICE_ABI, INVOICE_ADDRESS, Invoice, InvoiceStatus, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
-import { useAllSuppliers } from "@/lib/useSuppliers";
+import { useApprovedSuppliers } from "@/lib/useSuppliers";
 import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
@@ -47,7 +47,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
   const [now] = useState(() => new Date());
   const minDate = addDays(now, -MAX_DAYS_BACK);
   const maxDate = addDays(now, MAX_DAYS_FORWARD);
-  const { suppliers } = useAllSuppliers();
+  const { suppliers } = useApprovedSuppliers();
 
   const [supplierName, setSupplierName] = useState("");
   const [selectedDate, setSelectedDate] = useState(toDateValue(now));
@@ -257,14 +257,14 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
             {suppliers.length === 0 ? (
               <>
                 <select disabled className={`${inputClass} bg-slate-50 text-slate-400`}>
-                  <option>Belum ada data supplier</option>
+                  <option>Belum ada supplier yang disetujui Admin</option>
                 </select>
                 <span className="text-xs font-normal text-slate-400">
                   Tambahkan supplier dulu di menu{" "}
                   <Link href="/purchasing/suppliers/new" className="text-blue-600 hover:underline">
                     Data Supplier
-                  </Link>
-                  .
+                  </Link>{" "}
+                  dan tunggu disetujui Admin.
                 </span>
               </>
             ) : (
