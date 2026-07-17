@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Invoice, InvoiceStatus, invoiceStatusLabel } from "@/lib/contract";
+import { Invoice, InvoiceStatus, invoiceStatusLabel, paymentMethodLabel } from "@/lib/contract";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import { cardClass, statusBadgeClass } from "@/lib/ui";
 
@@ -20,6 +20,9 @@ export function InvoiceDocument({ invoice, headerRight }: { invoice: Invoice; he
             Pemasok: <span className="text-slate-700">{invoice.supplierName}</span>
           </p>
           <p className="text-sm text-slate-500">Tanggal: {formatDateTime(invoice.invoiceDate)}</p>
+          <p className="text-sm text-slate-500">
+            Metode Pembayaran: <span className="text-slate-700">{paymentMethodLabel(invoice.paymentMethod)}</span>
+          </p>
           <span
             className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
               statusBadgeClass[invoiceStatusLabel(invoice.status)] ?? "bg-slate-100 text-slate-600"

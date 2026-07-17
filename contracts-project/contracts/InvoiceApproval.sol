@@ -24,6 +24,11 @@ contract InvoiceApproval is ERC721 {
         RejectedByManager
     }
 
+    enum PaymentMethod {
+        Cash,
+        Transfer
+    }
+
     struct InvoiceItem {
         string name;
         uint256 qty;
@@ -48,6 +53,7 @@ contract InvoiceApproval is ERC721 {
         uint256 totalAmount;
         Status status;
         string keterangan;
+        PaymentMethod paymentMethod;
         InvoiceItem[] items;
         ApprovalRecord[] history;
     }
@@ -80,7 +86,8 @@ contract InvoiceApproval is ERC721 {
         uint256 invoiceDate,
         InvoiceItem[] calldata items,
         uint256 dpAmount,
-        string calldata keterangan
+        string calldata keterangan,
+        PaymentMethod paymentMethod
     ) external onlyRole(UserRegistry.Role.Purchasing) returns (uint256 id) {
         require(bytes(supplierName).length > 0, "InvoiceApproval: supplier name required");
         require(items.length > 0, "InvoiceApproval: at least one item required");
@@ -105,6 +112,7 @@ contract InvoiceApproval is ERC721 {
         inv.totalAmount = total;
         inv.status = Status.PendingFinance;
         inv.keterangan = keterangan;
+        inv.paymentMethod = paymentMethod;
         for (uint256 i = 0; i < items.length; i++) {
             inv.items.push(items[i]);
         }
@@ -122,7 +130,8 @@ contract InvoiceApproval is ERC721 {
         uint256 invoiceDate,
         InvoiceItem[] calldata items,
         uint256 dpAmount,
-        string calldata keterangan
+        string calldata keterangan,
+        PaymentMethod paymentMethod
     ) external {
         Invoice storage inv = _requireInvoice(id);
         require(inv.purchasing == msg.sender, "InvoiceApproval: not the invoice owner");
@@ -147,6 +156,7 @@ contract InvoiceApproval is ERC721 {
         inv.totalAmount = total;
         inv.status = Status.PendingFinance;
         inv.keterangan = keterangan;
+        inv.paymentMethod = paymentMethod;
 
         delete inv.items;
         for (uint256 i = 0; i < items.length; i++) {

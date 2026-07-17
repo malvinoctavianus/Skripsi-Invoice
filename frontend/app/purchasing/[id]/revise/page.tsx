@@ -7,7 +7,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { CurrencyInput } from "@/components/CurrencyInput";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useInvoice } from "@/lib/useInvoices";
-import { INVOICE_ABI, INVOICE_ADDRESS, Invoice, InvoiceStatus, Role } from "@/lib/contract";
+import { INVOICE_ABI, INVOICE_ADDRESS, Invoice, InvoiceStatus, PaymentMethod, paymentMethodLabel, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
@@ -52,6 +52,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
   const [items, setItems] = useState<ItemRow[]>([{ name: "", qty: "1", unitPrice: "0" }]);
   const [dpAmount, setDpAmount] = useState("0");
   const [keterangan, setKeterangan] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -70,6 +71,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
     );
     setDpAmount(invoice.dpAmount.toString());
     setKeterangan(invoice.keterangan);
+    setPaymentMethod(invoice.paymentMethod);
     setInitialized(true);
   }, [invoice, initialized]);
 
@@ -171,6 +173,10 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
       setFormError("Keterangan wajib diisi.");
       return;
     }
+    if (paymentMethod === null) {
+      setFormError("Metode pembayaran wajib dipilih.");
+      return;
+    }
     if (dp > total) {
       setFormError("DP tidak boleh lebih besar dari total.");
       return;
@@ -191,6 +197,7 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
         })),
         BigInt(dp),
         keterangan.trim(),
+        paymentMethod,
       ],
     });
   }
@@ -292,6 +299,32 @@ function ReviseInvoiceForm({ params }: { params: Promise<{ id: string }> }) {
               className={inputClass}
             />
           </label>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-slate-700">Metode Pembayaran</span>
+            <div className="flex gap-2">
+              {[PaymentMethod.Cash, PaymentMethod.Transfer].map((method) => (
+                <label
+                  key={method}
+                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    paymentMethod === method
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    value={method}
+                    checked={paymentMethod === method}
+                    onChange={() => setPaymentMethod(method)}
+                    className="sr-only"
+                  />
+                  {paymentMethodLabel(method)}
+                </label>
+              ))}
+            </div>
+          </div>
 
           <label className={labelClass}>
             DP (Opsional)

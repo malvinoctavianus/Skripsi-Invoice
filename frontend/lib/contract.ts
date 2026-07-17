@@ -66,6 +66,22 @@ export function invoiceStatusLabel(status: InvoiceStatus | number): string {
   }
 }
 
+export enum PaymentMethod {
+  Cash = 0,
+  Transfer = 1,
+}
+
+export function paymentMethodLabel(method: PaymentMethod | number): string {
+  switch (method) {
+    case PaymentMethod.Cash:
+      return "Cash";
+    case PaymentMethod.Transfer:
+      return "Transfer";
+    default:
+      return "Unknown";
+  }
+}
+
 export type InvoiceItem = {
   name: string;
   qty: bigint;
@@ -90,6 +106,7 @@ export type Invoice = {
   totalAmount: bigint;
   status: InvoiceStatus;
   keterangan: string;
+  paymentMethod: PaymentMethod;
   items: readonly InvoiceItem[];
   history: readonly ApprovalRecord[];
 };

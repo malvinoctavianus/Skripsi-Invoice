@@ -3,6 +3,7 @@ const { ethers } = require("hardhat");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 const Role = { None: 0, Admin: 1, Purchasing: 2, Finance: 3, Manager: 4 };
+const PaymentMethod = { Cash: 0, Transfer: 1 };
 const Status = {
   PendingFinance: 0,
   PendingManager: 1,
@@ -40,7 +41,7 @@ describe("InvoiceApproval", function () {
   it("lets a registered Purchasing wallet create an invoice with correct totals", async function () {
     const now = Math.floor(Date.now() / 1000);
     await expect(
-      invoiceApproval.connect(purchasing1).createInvoice("PT Sumber Makmur", now, sampleItems, 0, "Keterangan test")
+      invoiceApproval.connect(purchasing1).createInvoice("PT Sumber Makmur", now, sampleItems, 0, "Keterangan test", 0)
     )
       .to.emit(invoiceApproval, "InvoiceCreated")
       .withArgs(1, purchasing1.address, sampleTotal, anyValue);
@@ -51,43 +52,44 @@ describe("InvoiceApproval", function () {
     expect(inv.status).to.equal(Status.PendingFinance);
     expect(inv.items.length).to.equal(2);
     expect(inv.keterangan).to.equal("Keterangan test");
+    expect(inv.paymentMethod).to.equal(PaymentMethod.Cash);
   });
 
   it("rejects invoice creation and revision without a keterangan", async function () {
     const now = Math.floor(Date.now() / 1000);
     await expect(
-      invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "")
+      invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "", 0)
     ).to.be.revertedWith("InvoiceApproval: keterangan required");
 
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
     await invoiceApproval.connect(finance1).rejectByFinance(1, "budget tidak cukup");
 
     await expect(
-      invoiceApproval.connect(purchasing1).reviseInvoice(1, "PT X", now, sampleItems, 0, "")
+      invoiceApproval.connect(purchasing1).reviseInvoice(1, "PT X", now, sampleItems, 0, "", 0)
     ).to.be.revertedWith("InvoiceApproval: keterangan required");
   });
 
   it("rejects invoice creation from a non-Purchasing wallet", async function () {
     const now = Math.floor(Date.now() / 1000);
     await expect(
-      invoiceApproval.connect(finance1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test")
+      invoiceApproval.connect(finance1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0)
     ).to.be.revertedWith("InvoiceApproval: wrong role");
 
     await expect(
-      invoiceApproval.connect(outsider).createInvoice("PT X", now, sampleItems, 0, "Keterangan test")
+      invoiceApproval.connect(outsider).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0)
     ).to.be.revertedWith("InvoiceApproval: wallet not registered");
   });
 
   it("rejects a DP amount greater than the invoice total", async function () {
     const now = Math.floor(Date.now() / 1000);
     await expect(
-      invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, sampleTotal + 1, "Keterangan test")
+      invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, sampleTotal + 1, "Keterangan test", 0)
     ).to.be.revertedWith("InvoiceApproval: DP exceeds total amount");
   });
 
   it("enforces sequential approval: Manager cannot act before Finance approves", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
 
     await expect(
       invoiceApproval.connect(manager1).approveByManager(1, "ok")
@@ -96,7 +98,7 @@ describe("InvoiceApproval", function () {
 
   it("runs the full happy path: Finance approves, Manager approves, NFT is minted", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
 
     await expect(invoiceApproval.connect(finance1).approveByFinance(1, "sesuai anggaran"))
       .to.emit(invoiceApproval, "InvoiceApprovalUpdated")
@@ -117,7 +119,7 @@ describe("InvoiceApproval", function () {
 
   it("lets Finance reject an invoice, stopping the flow", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
 
     await expect(invoiceApproval.connect(finance1).rejectByFinance(1, "budget tidak cukup"))
       .to.emit(invoiceApproval, "InvoiceApprovalUpdated")
@@ -131,7 +133,7 @@ describe("InvoiceApproval", function () {
 
   it("lets Manager reject an invoice after Finance approved it", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
     await invoiceApproval.connect(finance1).approveByFinance(1, "ok");
 
     await expect(invoiceApproval.connect(manager1).rejectByManager(1, "supplier tidak sesuai"))
@@ -145,14 +147,14 @@ describe("InvoiceApproval", function () {
 
   it("lets Purchasing revise a rejected invoice and resubmit it under the same id", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
     await invoiceApproval.connect(finance1).rejectByFinance(1, "budget tidak cukup");
 
     const revisedItems = [{ name: "Kertas A4", qty: 5, unitPrice: 50000 }];
     const revisedTotal = 5 * 50000;
 
     await expect(
-      invoiceApproval.connect(purchasing1).reviseInvoice(1, "PT Y", now, revisedItems, 0, "Keterangan revisi")
+      invoiceApproval.connect(purchasing1).reviseInvoice(1, "PT Y", now, revisedItems, 0, "Keterangan revisi", 1)
     )
       .to.emit(invoiceApproval, "InvoiceRevised")
       .withArgs(1, purchasing1.address, revisedTotal, anyValue);
@@ -165,6 +167,7 @@ describe("InvoiceApproval", function () {
     expect(inv.history.length).to.equal(2);
     expect(inv.history[0].note).to.equal("budget tidak cukup");
     expect(inv.history[1].roleLabel).to.equal("Purchasing");
+    expect(inv.paymentMethod).to.equal(PaymentMethod.Transfer);
 
     // full happy path after revision
     await invoiceApproval.connect(finance1).approveByFinance(1, "ok setelah revisi");
@@ -174,21 +177,21 @@ describe("InvoiceApproval", function () {
 
   it("rejects revision from a non-owner wallet or a non-rejected invoice", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT X", now, sampleItems, 0, "Keterangan test", 0);
 
     await expect(
-      invoiceApproval.connect(outsider).reviseInvoice(1, "PT Y", now, sampleItems, 0, "Keterangan test")
+      invoiceApproval.connect(outsider).reviseInvoice(1, "PT Y", now, sampleItems, 0, "Keterangan test", 0)
     ).to.be.revertedWith("InvoiceApproval: not the invoice owner");
 
     await expect(
-      invoiceApproval.connect(purchasing1).reviseInvoice(1, "PT Y", now, sampleItems, 0, "Keterangan test")
+      invoiceApproval.connect(purchasing1).reviseInvoice(1, "PT Y", now, sampleItems, 0, "Keterangan test", 0)
     ).to.be.revertedWith("InvoiceApproval: invoice is not rejected");
   });
 
   it("lists invoice ids by Purchasing wallet", async function () {
     const now = Math.floor(Date.now() / 1000);
-    await invoiceApproval.connect(purchasing1).createInvoice("PT A", now, sampleItems, 0, "Keterangan test");
-    await invoiceApproval.connect(purchasing1).createInvoice("PT B", now, sampleItems, 0, "Keterangan test");
+    await invoiceApproval.connect(purchasing1).createInvoice("PT A", now, sampleItems, 0, "Keterangan test", 0);
+    await invoiceApproval.connect(purchasing1).createInvoice("PT B", now, sampleItems, 0, "Keterangan test", 0);
 
     const ids = await invoiceApproval.getInvoicesByPurchasing(purchasing1.address);
     expect(ids.map(Number)).to.deep.equal([1, 2]);

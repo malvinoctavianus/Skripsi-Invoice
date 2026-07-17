@@ -7,7 +7,7 @@ import { decodeEventLog } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CurrencyInput } from "@/components/CurrencyInput";
 import { RoleGuard } from "@/components/RoleGuard";
-import { INVOICE_ABI, INVOICE_ADDRESS, Role } from "@/lib/contract";
+import { INVOICE_ABI, INVOICE_ADDRESS, PaymentMethod, paymentMethodLabel, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
 import { useApprovedSuppliers } from "@/lib/useSuppliers";
 import { formatRupiah } from "@/lib/format";
@@ -21,6 +21,7 @@ type Draft = {
   items: ItemRow[];
   dpAmount: string;
   keterangan: string;
+  paymentMethod: PaymentMethod | null;
 };
 
 const DRAFT_KEY = "purchasing-invoice-draft";
@@ -79,6 +80,7 @@ function NewInvoiceForm() {
   );
   const [dpAmount, setDpAmount] = useState(draft?.dpAmount ?? "0");
   const [keterangan, setKeterangan] = useState(draft?.keterangan ?? "");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(draft?.paymentMethod ?? null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
@@ -87,9 +89,9 @@ function NewInvoiceForm() {
   });
 
   useEffect(() => {
-    const data: Draft = { supplierName, selectedDate, items, dpAmount, keterangan };
+    const data: Draft = { supplierName, selectedDate, items, dpAmount, keterangan, paymentMethod };
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-  }, [supplierName, selectedDate, items, dpAmount, keterangan]);
+  }, [supplierName, selectedDate, items, dpAmount, keterangan, paymentMethod]);
 
   useEffect(() => {
     if (!isSuccess || !receipt) return;
@@ -148,6 +150,10 @@ function NewInvoiceForm() {
       setFormError("Keterangan wajib diisi.");
       return;
     }
+    if (paymentMethod === null) {
+      setFormError("Metode pembayaran wajib dipilih.");
+      return;
+    }
 
     const datePart = new Date(selectedDate);
     if (Number.isNaN(datePart.getTime())) {
@@ -195,6 +201,7 @@ function NewInvoiceForm() {
         })),
         BigInt(dp),
         keterangan.trim(),
+        paymentMethod,
       ],
     });
   }
@@ -327,6 +334,32 @@ function NewInvoiceForm() {
             />
           </label>
 
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-slate-700">Metode Pembayaran</span>
+            <div className="flex gap-2">
+              {[PaymentMethod.Cash, PaymentMethod.Transfer].map((method) => (
+                <label
+                  key={method}
+                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    paymentMethod === method
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    value={method}
+                    checked={paymentMethod === method}
+                    onChange={() => setPaymentMethod(method)}
+                    className="sr-only"
+                  />
+                  {paymentMethodLabel(method)}
+                </label>
+              ))}
+            </div>
+          </div>
+
           <label className={labelClass}>
             DP (Opsional)
             <CurrencyInput value={dpAmount} onChange={setDpAmount} placeholder="Rp 0" className={inputClass} />
@@ -352,7 +385,9 @@ function NewInvoiceForm() {
 
           <button
             type="submit"
-            disabled={isPending || isConfirming || supplierName.trim().length === 0}
+            disabled={
+              isPending || isConfirming || supplierName.trim().length === 0 || paymentMethod === null
+            }
             className={primaryButtonClass}
           >
             {isPending
@@ -363,6 +398,9 @@ function NewInvoiceForm() {
           </button>
           {supplierName.trim().length === 0 && (
             <p className="text-xs text-slate-400">Pilih nama pemasok dulu sebelum bisa submit.</p>
+          )}
+          {supplierName.trim().length > 0 && paymentMethod === null && (
+            <p className="text-xs text-slate-400">Pilih metode pembayaran dulu sebelum bisa submit.</p>
           )}
         </form>
       </div>

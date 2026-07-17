@@ -438,6 +438,11 @@
         "internalType": "string",
         "name": "keterangan",
         "type": "string"
+      },
+      {
+        "internalType": "enum InvoiceApproval.PaymentMethod",
+        "name": "paymentMethod",
+        "type": "uint8"
       }
     ],
     "name": "createInvoice",
@@ -526,6 +531,11 @@
             "internalType": "string",
             "name": "keterangan",
             "type": "string"
+          },
+          {
+            "internalType": "enum InvoiceApproval.PaymentMethod",
+            "name": "paymentMethod",
+            "type": "uint8"
           },
           {
             "components": [
@@ -775,6 +785,11 @@
         "internalType": "string",
         "name": "keterangan",
         "type": "string"
+      },
+      {
+        "internalType": "enum InvoiceApproval.PaymentMethod",
+        "name": "paymentMethod",
+        "type": "uint8"
       }
     ],
     "name": "reviseInvoice",

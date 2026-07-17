@@ -1,4 +1,4 @@
-import { Invoice, invoiceStatusLabel } from "./contract";
+import { Invoice, invoiceStatusLabel, paymentMethodLabel } from "./contract";
 import { formatDateTime, formatRupiah } from "./format";
 
 async function buildInvoicePdf(invoice: Invoice) {
@@ -45,6 +45,12 @@ async function buildInvoicePdf(invoice: Invoice) {
   doc.setFont("helvetica", "normal");
   doc.text(formatDateTime(invoice.invoiceDate), valueX, y);
   doc.text(invoice.supplierName, rightValueX, y, { maxWidth: pageWidth - rightValueX - marginX });
+
+  y += 7;
+  doc.setFont("helvetica", "bold");
+  doc.text("Metode Bayar", labelX, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(paymentMethodLabel(invoice.paymentMethod), valueX, y);
 
   if (invoice.keterangan) {
     y += 7;
