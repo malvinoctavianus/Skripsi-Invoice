@@ -20,10 +20,43 @@ describe("ContractApproval", function () {
   const oneYear = 365 * 24 * 60 * 60;
 
   const sampleClauses = [
-    { name: "Pasal 1 - Ruang Lingkup Pekerjaan", value: 500000 },
-    { name: "Pasal 2 - Jangka Waktu", value: 300000 },
+    { content: "Pihak Pertama akan menanamkan modal kepada Pihak Kedua sebesar Rp 55.000.000." },
+    { content: "Pihak Kedua akan memberikan keuntungan sebesar 2% dari hasil penjualan." },
   ];
-  const sampleTotal = 500000 + 300000;
+  const sampleValue = 55000000;
+
+  function createDefault(signer, counterpartyName, clauses, keterangan, paymentMethod, contractValue) {
+    const t = now();
+    return contractApproval
+      .connect(signer)
+      .createContract(
+        counterpartyName,
+        t,
+        t,
+        t + oneYear,
+        clauses,
+        keterangan,
+        paymentMethod,
+        contractValue
+      );
+  }
+
+  function reviseDefault(signer, id, counterpartyName, clauses, keterangan, paymentMethod, contractValue) {
+    const t = now();
+    return contractApproval
+      .connect(signer)
+      .reviseContract(
+        id,
+        counterpartyName,
+        t,
+        t,
+        t + oneYear,
+        clauses,
+        keterangan,
+        paymentMethod,
+        contractValue
+      );
+  }
 
   beforeEach(async function () {
     [admin, legal1, finance1, direktur1, outsider] = await ethers.getSigners();
@@ -41,55 +74,49 @@ describe("ContractApproval", function () {
     await contractApproval.waitForDeployment();
   });
 
-  it("lets a registered Legal wallet create a contract with correct totals", async function () {
-    const t = now();
+  it("lets a registered Legal wallet create a contract with correct data", async function () {
     await expect(
-      contractApproval
-        .connect(legal1)
-        .createContract("PT Mitra Sejahtera", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash)
+      createDefault(legal1, "PT Mitra Sejahtera", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue)
     )
       .to.emit(contractApproval, "ContractCreated")
-      .withArgs(1, legal1.address, sampleTotal, anyValue);
+      .withArgs(1, legal1.address, sampleValue, anyValue);
 
     const doc = await contractApproval.getContract(1);
     expect(doc.counterpartyName).to.equal("PT Mitra Sejahtera");
-    expect(doc.contractValue).to.equal(sampleTotal);
+    expect(doc.contractValue).to.equal(sampleValue);
     expect(doc.status).to.equal(Status.PendingFinance);
     expect(doc.clauses.length).to.equal(2);
+    expect(doc.clauses[0].content).to.equal(sampleClauses[0].content);
     expect(doc.keterangan).to.equal("Keterangan test");
     expect(doc.paymentMethod).to.equal(PaymentMethod.Cash);
   });
 
   it("rejects contract creation and revision without a keterangan", async function () {
-    const t = now();
     await expect(
-      contractApproval.connect(legal1).createContract("PT X", t, t, t + oneYear, sampleClauses, "", PaymentMethod.Cash)
+      createDefault(legal1, "PT X", sampleClauses, "", PaymentMethod.Cash, sampleValue)
     ).to.be.revertedWith("ContractApproval: keterangan required");
 
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
     await contractApproval.connect(finance1).rejectByFinance(1, "nilai tidak sesuai");
 
     await expect(
-      contractApproval
-        .connect(legal1)
-        .reviseContract(1, "PT X", t, t, t + oneYear, sampleClauses, "", PaymentMethod.Cash)
+      reviseDefault(legal1, 1, "PT X", sampleClauses, "", PaymentMethod.Cash, sampleValue)
     ).to.be.revertedWith("ContractApproval: keterangan required");
   });
 
-  it("rejects contract creation from a non-Legal wallet", async function () {
-    const t = now();
+  it("rejects an empty clause content", async function () {
     await expect(
-      contractApproval
-        .connect(finance1)
-        .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash)
+      createDefault(legal1, "PT X", [{ content: "" }], "Keterangan test", PaymentMethod.Cash, sampleValue)
+    ).to.be.revertedWith("ContractApproval: clause content required");
+  });
+
+  it("rejects contract creation from a non-Legal wallet", async function () {
+    await expect(
+      createDefault(finance1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue)
     ).to.be.revertedWith("ContractApproval: wrong role");
 
     await expect(
-      contractApproval
-        .connect(outsider)
-        .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash)
+      createDefault(outsider, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue)
     ).to.be.revertedWith("ContractApproval: wallet not registered");
   });
 
@@ -98,15 +125,21 @@ describe("ContractApproval", function () {
     await expect(
       contractApproval
         .connect(legal1)
-        .createContract("PT X", t, t + oneYear, t, sampleClauses, "Keterangan test", PaymentMethod.Cash)
+        .createContract(
+          "PT X",
+          t,
+          t + oneYear,
+          t,
+          sampleClauses,
+          "Keterangan test",
+          PaymentMethod.Cash,
+          sampleValue
+        )
     ).to.be.revertedWith("ContractApproval: validUntil before validFrom");
   });
 
   it("enforces sequential approval: Direktur cannot act before Finance approves", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
 
     await expect(
       contractApproval.connect(direktur1).approveByDirektur(1, "ok")
@@ -114,10 +147,7 @@ describe("ContractApproval", function () {
   });
 
   it("runs the full happy path: Finance approves, Direktur approves, NFT is minted", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
 
     await expect(contractApproval.connect(finance1).approveByFinance(1, "sesuai anggaran"))
       .to.emit(contractApproval, "ContractApprovalUpdated")
@@ -137,10 +167,7 @@ describe("ContractApproval", function () {
   });
 
   it("lets Finance reject a contract, stopping the flow", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
 
     await expect(contractApproval.connect(finance1).rejectByFinance(1, "nilai tidak sesuai"))
       .to.emit(contractApproval, "ContractApprovalUpdated")
@@ -153,10 +180,7 @@ describe("ContractApproval", function () {
   });
 
   it("lets Direktur reject a contract after Finance approved it", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
     await contractApproval.connect(finance1).approveByFinance(1, "ok");
 
     await expect(contractApproval.connect(direktur1).rejectByDirektur(1, "mitra tidak sesuai"))
@@ -169,27 +193,22 @@ describe("ContractApproval", function () {
   });
 
   it("lets Legal revise a rejected contract and resubmit it under the same id", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
     await contractApproval.connect(finance1).rejectByFinance(1, "nilai tidak sesuai");
 
-    const revisedClauses = [{ name: "Pasal 1 - Ruang Lingkup Pekerjaan", value: 250000 }];
-    const revisedTotal = 250000;
+    const revisedClauses = [{ content: "Pihak Pertama menanamkan modal sebesar Rp 25.000.000." }];
+    const revisedValue = 25000000;
 
     await expect(
-      contractApproval
-        .connect(legal1)
-        .reviseContract(1, "PT Y", t, t, t + oneYear, revisedClauses, "Keterangan revisi", PaymentMethod.Transfer)
+      reviseDefault(legal1, 1, "PT Y", revisedClauses, "Keterangan revisi", PaymentMethod.Transfer, revisedValue)
     )
       .to.emit(contractApproval, "ContractRevised")
-      .withArgs(1, legal1.address, revisedTotal, anyValue);
+      .withArgs(1, legal1.address, revisedValue, anyValue);
 
     const doc = await contractApproval.getContract(1);
     expect(doc.status).to.equal(Status.PendingFinance);
     expect(doc.counterpartyName).to.equal("PT Y");
-    expect(doc.contractValue).to.equal(revisedTotal);
+    expect(doc.contractValue).to.equal(revisedValue);
     expect(doc.clauses.length).to.equal(1);
     expect(doc.history.length).to.equal(2);
     expect(doc.history[0].note).to.equal("nilai tidak sesuai");
@@ -203,32 +222,20 @@ describe("ContractApproval", function () {
   });
 
   it("rejects revision from a non-owner wallet or a non-rejected contract", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT X", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
 
     await expect(
-      contractApproval
-        .connect(outsider)
-        .reviseContract(1, "PT Y", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash)
+      reviseDefault(outsider, 1, "PT Y", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue)
     ).to.be.revertedWith("ContractApproval: not the contract owner");
 
     await expect(
-      contractApproval
-        .connect(legal1)
-        .reviseContract(1, "PT Y", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash)
+      reviseDefault(legal1, 1, "PT Y", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue)
     ).to.be.revertedWith("ContractApproval: contract is not rejected");
   });
 
   it("lists contract ids by Legal wallet", async function () {
-    const t = now();
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT A", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
-    await contractApproval
-      .connect(legal1)
-      .createContract("PT B", t, t, t + oneYear, sampleClauses, "Keterangan test", PaymentMethod.Cash);
+    await createDefault(legal1, "PT A", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
+    await createDefault(legal1, "PT B", sampleClauses, "Keterangan test", PaymentMethod.Cash, sampleValue);
 
     const ids = await contractApproval.getContractsByLegal(legal1.address);
     expect(ids.map(Number)).to.deep.equal([1, 2]);

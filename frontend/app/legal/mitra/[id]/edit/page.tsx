@@ -11,6 +11,11 @@ import { LEGAL_NAV } from "@/lib/navigation";
 import { formatDateTime } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
 
+function toDateValue(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export default function EditMitraPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <RoleGuard role={Role.Legal} navItems={LEGAL_NAV}>
@@ -28,7 +33,11 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
   const { history } = useCounterpartyEditHistory(counterpartyId);
 
   const [name, setName] = useState("");
+  const [signatoryName, setSignatoryName] = useState("");
+  const [birthPlace, setBirthPlace] = useState("");
+  const [birthDate, setBirthDate] = useState(toDateValue(new Date()));
   const [alamat, setAlamat] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -38,7 +47,11 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
   useEffect(() => {
     if (!counterparty || initialized) return;
     setName(counterparty.name);
+    setSignatoryName(counterparty.signatoryName);
+    setBirthPlace(counterparty.birthPlace);
+    setBirthDate(toDateValue(new Date(Number(counterparty.birthDate) * 1000)));
     setAlamat(counterparty.alamat);
+    setIdNumber(counterparty.idNumber);
     setInitialized(true);
   }, [counterparty, initialized]);
 
@@ -101,11 +114,28 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
       return;
     }
     if (name.trim().length === 0) {
-      setFormError("Nama mitra wajib diisi.");
+      setFormError("Nama perusahaan wajib diisi.");
+      return;
+    }
+    if (signatoryName.trim().length === 0) {
+      setFormError("Nama penandatangan wajib diisi.");
+      return;
+    }
+    if (birthPlace.trim().length === 0) {
+      setFormError("Tempat lahir wajib diisi.");
+      return;
+    }
+    const birthDateObj = new Date(birthDate);
+    if (Number.isNaN(birthDateObj.getTime())) {
+      setFormError("Tanggal lahir tidak valid.");
       return;
     }
     if (alamat.trim().length === 0) {
-      setFormError("Alamat mitra wajib diisi.");
+      setFormError("Alamat sesuai KTP wajib diisi.");
+      return;
+    }
+    if (idNumber.trim().length === 0) {
+      setFormError("No. KTP/SIM wajib diisi.");
       return;
     }
 
@@ -113,7 +143,15 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
       abi: COUNTERPARTY_REGISTRY_ABI,
       address: COUNTERPARTY_REGISTRY_ADDRESS,
       functionName: "editCounterparty",
-      args: [counterpartyId, name.trim(), alamat.trim()],
+      args: [
+        counterpartyId,
+        name.trim(),
+        signatoryName.trim(),
+        birthPlace.trim(),
+        BigInt(Math.floor(birthDateObj.getTime() / 1000)),
+        alamat.trim(),
+        idNumber.trim(),
+      ],
     });
   }
 
@@ -136,18 +174,48 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className={labelClass}>
-            Nama Mitra
+            Nama Perusahaan
             <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
           </label>
 
           <label className={labelClass}>
-            Alamat
+            Nama Penandatangan
+            <input
+              value={signatoryName}
+              onChange={(e) => setSignatoryName(e.target.value)}
+              className={inputClass}
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className={labelClass}>
+              Tempat Lahir (sesuai KTP)
+              <input value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} className={inputClass} />
+            </label>
+            <label className={labelClass}>
+              Tanggal Lahir (sesuai KTP)
+              <input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className={inputClass}
+              />
+            </label>
+          </div>
+
+          <label className={labelClass}>
+            Alamat Sesuai KTP
             <textarea
               value={alamat}
               onChange={(e) => setAlamat(e.target.value)}
               rows={3}
               className={inputClass}
             />
+          </label>
+
+          <label className={labelClass}>
+            No. KTP/SIM
+            <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} className={inputClass} />
           </label>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}
@@ -170,6 +238,7 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
             {history.map((entry, i) => (
               <div key={i} className="rounded-lg bg-slate-50 px-3 py-2 text-sm">
                 <p className="font-medium text-slate-700">{entry.name}</p>
+                <p className="text-slate-500">Penandatangan: {entry.signatoryName}</p>
                 <p className="text-slate-500">{entry.alamat}</p>
                 <p className="mt-1 text-xs text-slate-400">
                   Diubah {formatDateTime(entry.editedAt)} oleh {entry.editedBy}

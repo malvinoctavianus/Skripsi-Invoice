@@ -421,13 +421,8 @@
         "components": [
           {
             "internalType": "string",
-            "name": "name",
+            "name": "content",
             "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "value",
-            "type": "uint256"
           }
         ],
         "internalType": "struct ContractApproval.ContractClause[]",
@@ -443,6 +438,11 @@
         "internalType": "enum ContractApproval.PaymentMethod",
         "name": "paymentMethod",
         "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "contractValue",
+        "type": "uint256"
       }
     ],
     "name": "createContract",
@@ -546,13 +546,8 @@
             "components": [
               {
                 "internalType": "string",
-                "name": "name",
+                "name": "content",
                 "type": "string"
-              },
-              {
-                "internalType": "uint256",
-                "name": "value",
-                "type": "uint256"
               }
             ],
             "internalType": "struct ContractApproval.ContractClause[]",
@@ -768,13 +763,8 @@
         "components": [
           {
             "internalType": "string",
-            "name": "name",
+            "name": "content",
             "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "value",
-            "type": "uint256"
           }
         ],
         "internalType": "struct ContractApproval.ContractClause[]",
@@ -790,6 +780,11 @@
         "internalType": "enum ContractApproval.PaymentMethod",
         "name": "paymentMethod",
         "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "contractValue",
+        "type": "uint256"
       }
     ],
     "name": "reviseContract",

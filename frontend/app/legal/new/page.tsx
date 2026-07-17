@@ -10,10 +10,9 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { CONTRACT_ABI, CONTRACT_ADDRESS, PaymentMethod, paymentMethodLabel, Role } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
 import { useApprovedCounterparties } from "@/lib/useCounterparties";
-import { formatRupiah } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
-type ClauseRow = { name: string; value: string };
+type ClauseRow = { content: string };
 
 type Draft = {
   counterpartyName: string;
@@ -23,6 +22,7 @@ type Draft = {
   clauses: ClauseRow[];
   keterangan: string;
   paymentMethod: PaymentMethod | null;
+  contractValue: string;
 };
 
 const DRAFT_KEY = "legal-contract-draft";
@@ -78,11 +78,10 @@ function NewContractForm() {
   });
   const [validFrom, setValidFrom] = useState(draft?.validFrom ?? toDateValue(now));
   const [validUntil, setValidUntil] = useState(draft?.validUntil ?? toDateValue(addDays(now, 365)));
-  const [clauses, setClauses] = useState<ClauseRow[]>(
-    draft?.clauses ?? [{ name: "", value: "0" }]
-  );
+  const [clauses, setClauses] = useState<ClauseRow[]>(draft?.clauses ?? [{ content: "" }]);
   const [keterangan, setKeterangan] = useState(draft?.keterangan ?? "");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(draft?.paymentMethod ?? null);
+  const [contractValue, setContractValue] = useState(draft?.contractValue ?? "0");
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
@@ -91,9 +90,18 @@ function NewContractForm() {
   });
 
   useEffect(() => {
-    const data: Draft = { counterpartyName, selectedDate, validFrom, validUntil, clauses, keterangan, paymentMethod };
+    const data: Draft = {
+      counterpartyName,
+      selectedDate,
+      validFrom,
+      validUntil,
+      clauses,
+      keterangan,
+      paymentMethod,
+      contractValue,
+    };
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-  }, [counterpartyName, selectedDate, validFrom, validUntil, clauses, keterangan, paymentMethod]);
+  }, [counterpartyName, selectedDate, validFrom, validUntil, clauses, keterangan, paymentMethod, contractValue]);
 
   useEffect(() => {
     if (!isSuccess || !receipt) return;
@@ -116,14 +124,12 @@ function NewContractForm() {
     router.push(newContractId ? `/legal/${newContractId}` : "/legal");
   }, [isSuccess, receipt, router]);
 
-  const total = clauses.reduce((sum, clause) => sum + (Number(clause.value) || 0), 0);
-
-  function updateClause(index: number, patch: Partial<ClauseRow>) {
-    setClauses((prev) => prev.map((clause, i) => (i === index ? { ...clause, ...patch } : clause)));
+  function updateClause(index: number, content: string) {
+    setClauses((prev) => prev.map((clause, i) => (i === index ? { content } : clause)));
   }
 
   function addClause() {
-    setClauses((prev) => [...prev, { name: "", value: "0" }]);
+    setClauses((prev) => [...prev, { content: "" }]);
   }
 
   function removeClause(index: number) {
@@ -177,9 +183,9 @@ function NewContractForm() {
     const contractDateTime = new Date(datePart);
     contractDateTime.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), 0);
 
-    const validClauses = clauses.filter((clause) => clause.name.trim().length > 0);
+    const validClauses = clauses.filter((clause) => clause.content.trim().length > 0);
     if (validClauses.length === 0) {
-      setFormError("Minimal satu pasal/klausul harus diisi.");
+      setFormError("Minimal satu pasal harus diisi.");
       return;
     }
 
@@ -192,12 +198,10 @@ function NewContractForm() {
         BigInt(Math.floor(contractDateTime.getTime() / 1000)),
         BigInt(Math.floor(validFromDate.getTime() / 1000)),
         BigInt(Math.floor(validUntilDate.getTime() / 1000)),
-        validClauses.map((clause) => ({
-          name: clause.name.trim(),
-          value: BigInt(clause.value || "0"),
-        })),
+        validClauses.map((clause) => ({ content: clause.content.trim() })),
         keterangan.trim(),
         paymentMethod,
+        BigInt(contractValue || "0"),
       ],
     });
   }
@@ -292,36 +296,32 @@ function NewContractForm() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-slate-700">Pasal / Klausul Kontrak</span>
+            <span className="text-sm font-medium text-slate-700">Pasal Kerja Sama</span>
+            <p className="text-xs text-slate-400">
+              Tiap pasal diberi nomor otomatis (PASAL 1, PASAL 2, dst) sesuai urutan. Isi bebas
+              seperti draf perjanjian kerjasama biasa.
+            </p>
             <div className="flex flex-col gap-3">
               {clauses.map((clause, index) => (
-                <div key={index} className="grid grid-cols-[1fr_160px_auto] items-end gap-2">
-                  <label className="flex flex-col gap-1 text-xs text-slate-500">
-                    Nama Pasal
-                    <input
-                      value={clause.name}
-                      onChange={(e) => updateClause(index, { name: e.target.value })}
-                      placeholder="mis. Ruang Lingkup Pekerjaan"
-                      className={inputClass}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-1 text-xs text-slate-500">
-                    Nilai
-                    <CurrencyInput
-                      value={clause.value}
-                      onChange={(raw) => updateClause(index, { value: raw })}
-                      placeholder="Rp 0"
-                      className={inputClass}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => removeClause(index)}
-                    disabled={clauses.length === 1}
-                    className={`${secondaryButtonClass} h-fit disabled:opacity-30`}
-                  >
-                    Hapus
-                  </button>
+                <div key={index} className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">PASAL {index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeClause(index)}
+                      disabled={clauses.length === 1}
+                      className="text-xs font-medium text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      Hapus Pasal
+                    </button>
+                  </div>
+                  <textarea
+                    value={clause.content}
+                    onChange={(e) => updateClause(index, e.target.value)}
+                    rows={3}
+                    placeholder="mis. Pihak Pertama akan menanamkan modal kepada Pihak Kedua sebesar Rp 55.000.000 sebagai modal usaha."
+                    className={inputClass}
+                  />
                 </div>
               ))}
             </div>
@@ -367,12 +367,14 @@ function NewContractForm() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 rounded-lg bg-slate-50 px-4 py-3 text-sm">
-            <div className="flex justify-between text-slate-500">
-              <span>Total Nilai Kontrak</span>
-              <span className="font-semibold text-slate-900">{formatRupiah(total)}</span>
-            </div>
-          </div>
+          <label className={labelClass}>
+            Nilai Kontrak
+            <CurrencyInput value={contractValue} onChange={setContractValue} placeholder="Rp 0" className={inputClass} />
+            <span className="text-xs font-normal text-slate-400">
+              Total nilai kerja sama ini, mis. nilai modal/investasi yang disebut di pasal-pasal
+              di atas.
+            </span>
+          </label>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}
           {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}

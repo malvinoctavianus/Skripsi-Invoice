@@ -30,8 +30,7 @@ contract ContractApproval is ERC721 {
     }
 
     struct ContractClause {
-        string name;
-        uint256 value;
+        string content;
     }
 
     struct ApprovalRecord {
@@ -88,17 +87,16 @@ contract ContractApproval is ERC721 {
         uint256 validUntil,
         ContractClause[] calldata clauses,
         string calldata keterangan,
-        PaymentMethod paymentMethod
+        PaymentMethod paymentMethod,
+        uint256 contractValue
     ) external onlyRole(UserRegistry.Role.Legal) returns (uint256 id) {
         require(bytes(counterpartyName).length > 0, "ContractApproval: counterparty name required");
         require(clauses.length > 0, "ContractApproval: at least one clause required");
         require(bytes(keterangan).length > 0, "ContractApproval: keterangan required");
         require(validUntil >= validFrom, "ContractApproval: validUntil before validFrom");
 
-        uint256 total = 0;
         for (uint256 i = 0; i < clauses.length; i++) {
-            require(bytes(clauses[i].name).length > 0, "ContractApproval: clause name required");
-            total += clauses[i].value;
+            require(bytes(clauses[i].content).length > 0, "ContractApproval: clause content required");
         }
 
         id = nextContractId++;
@@ -111,7 +109,7 @@ contract ContractApproval is ERC721 {
         doc.createdAt = block.timestamp;
         doc.validFrom = validFrom;
         doc.validUntil = validUntil;
-        doc.contractValue = total;
+        doc.contractValue = contractValue;
         doc.status = Status.PendingFinance;
         doc.keterangan = keterangan;
         doc.paymentMethod = paymentMethod;
@@ -121,7 +119,7 @@ contract ContractApproval is ERC721 {
 
         contractsByLegal[msg.sender].push(id);
 
-        emit ContractCreated(id, msg.sender, total, block.timestamp);
+        emit ContractCreated(id, msg.sender, contractValue, block.timestamp);
     }
 
     /// @notice Lets the original Legal wallet fix and resubmit a rejected contract under
@@ -134,7 +132,8 @@ contract ContractApproval is ERC721 {
         uint256 validUntil,
         ContractClause[] calldata clauses,
         string calldata keterangan,
-        PaymentMethod paymentMethod
+        PaymentMethod paymentMethod,
+        uint256 contractValue
     ) external {
         ContractDoc storage doc = _requireContract(id);
         require(doc.legal == msg.sender, "ContractApproval: not the contract owner");
@@ -147,17 +146,15 @@ contract ContractApproval is ERC721 {
         require(bytes(keterangan).length > 0, "ContractApproval: keterangan required");
         require(validUntil >= validFrom, "ContractApproval: validUntil before validFrom");
 
-        uint256 total = 0;
         for (uint256 i = 0; i < clauses.length; i++) {
-            require(bytes(clauses[i].name).length > 0, "ContractApproval: clause name required");
-            total += clauses[i].value;
+            require(bytes(clauses[i].content).length > 0, "ContractApproval: clause content required");
         }
 
         doc.counterpartyName = counterpartyName;
         doc.contractDate = contractDate;
         doc.validFrom = validFrom;
         doc.validUntil = validUntil;
-        doc.contractValue = total;
+        doc.contractValue = contractValue;
         doc.status = Status.PendingFinance;
         doc.keterangan = keterangan;
         doc.paymentMethod = paymentMethod;
@@ -171,7 +168,7 @@ contract ContractApproval is ERC721 {
             ApprovalRecord(msg.sender, "Legal", true, "Kontrak direvisi dan diajukan ulang", block.timestamp)
         );
 
-        emit ContractRevised(id, msg.sender, total, block.timestamp);
+        emit ContractRevised(id, msg.sender, contractValue, block.timestamp);
     }
 
     function approveByFinance(uint256 id, string calldata note) external onlyRole(UserRegistry.Role.Finance) {

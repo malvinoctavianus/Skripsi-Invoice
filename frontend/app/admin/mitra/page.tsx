@@ -148,7 +148,12 @@ function MitraReviewCard({ counterparty, onDone }: { counterparty: Counterparty;
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-medium text-slate-800">{counterparty.name}</p>
+          <p className="text-sm text-slate-500">
+            Penandatangan: {counterparty.signatoryName} · {counterparty.birthPlace},{" "}
+            {formatDateTime(counterparty.birthDate)}
+          </p>
           <p className="text-sm text-slate-500">{counterparty.alamat}</p>
+          <p className="text-sm text-slate-500">No. KTP/SIM: {counterparty.idNumber}</p>
           <p className="mt-1 text-xs text-slate-400">
             Diajukan {formatDateTime(counterparty.addedAt)} oleh {counterparty.addedBy}
             {counterparty.lastEditedAt > BigInt(0) && ` · diedit ${formatDateTime(counterparty.lastEditedAt)}`}

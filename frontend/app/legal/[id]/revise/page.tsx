@@ -9,10 +9,9 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { useContract } from "@/lib/useContracts";
 import { CONTRACT_ABI, CONTRACT_ADDRESS, CompanyContract, ContractStatus, PaymentMethod, paymentMethodLabel, Role } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
-import { formatRupiah, formatDateTime } from "@/lib/format";
-import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
-type ClauseRow = { name: string; value: string };
+type ClauseRow = { content: string };
 
 const MAX_DAYS_BACK = 3;
 const MAX_DAYS_FORWARD = 1;
@@ -55,9 +54,10 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
   const [selectedDate, setSelectedDate] = useState(toDateValue(now));
   const [validFrom, setValidFrom] = useState(toDateValue(now));
   const [validUntil, setValidUntil] = useState(toDateValue(now));
-  const [clauses, setClauses] = useState<ClauseRow[]>([{ name: "", value: "0" }]);
+  const [clauses, setClauses] = useState<ClauseRow[]>([{ content: "" }]);
   const [keterangan, setKeterangan] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [contractValue, setContractValue] = useState("0");
   const [formError, setFormError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -69,14 +69,10 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
     setCounterpartyName(contract.counterpartyName);
     setValidFrom(toDateValueFromUnix(contract.validFrom));
     setValidUntil(toDateValueFromUnix(contract.validUntil));
-    setClauses(
-      contract.clauses.map((clause) => ({
-        name: clause.name,
-        value: clause.value.toString(),
-      }))
-    );
+    setClauses(contract.clauses.map((clause) => ({ content: clause.content })));
     setKeterangan(contract.keterangan);
     setPaymentMethod(contract.paymentMethod);
+    setContractValue(contract.contractValue.toString());
     setInitialized(true);
   }, [contract, initialized]);
 
@@ -133,10 +129,16 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
 
   const doc = contract;
 
-  const total = clauses.reduce((sum, clause) => sum + (Number(clause.value) || 0), 0);
+  function updateClause(index: number, content: string) {
+    setClauses((prev) => prev.map((clause, i) => (i === index ? { content } : clause)));
+  }
 
-  function updateClauseValue(index: number, value: string) {
-    setClauses((prev) => prev.map((clause, i) => (i === index ? { ...clause, value } : clause)));
+  function addClause() {
+    setClauses((prev) => [...prev, { content: "" }]);
+  }
+
+  function removeClause(index: number) {
+    setClauses((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -182,6 +184,12 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
       return;
     }
 
+    const validClauses = clauses.filter((clause) => clause.content.trim().length > 0);
+    if (validClauses.length === 0) {
+      setFormError("Minimal satu pasal harus diisi.");
+      return;
+    }
+
     writeContract({
       abi: CONTRACT_ABI,
       address: CONTRACT_ADDRESS,
@@ -192,12 +200,10 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
         BigInt(Math.floor(contractDateTime.getTime() / 1000)),
         BigInt(Math.floor(validFromDate.getTime() / 1000)),
         BigInt(Math.floor(validUntilDate.getTime() / 1000)),
-        clauses.map((clause) => ({
-          name: clause.name,
-          value: BigInt(clause.value || "0"),
-        })),
+        validClauses.map((clause) => ({ content: clause.content.trim() })),
         keterangan.trim(),
         paymentMethod,
+        BigInt(contractValue || "0"),
       ],
     });
   }
@@ -276,29 +282,34 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-slate-700">Pasal / Klausul Kontrak</span>
-            <p className="text-xs text-slate-400">
-              Nama pasal tidak bisa diubah saat revisi, hanya nilainya.
-            </p>
+            <span className="text-sm font-medium text-slate-700">Pasal Kerja Sama</span>
+            <p className="text-xs text-slate-400">Bisa diedit, ditambah, atau dikurangi saat revisi.</p>
             <div className="flex flex-col gap-3">
               {clauses.map((clause, index) => (
-                <div key={index} className="grid grid-cols-[1fr_160px] items-end gap-2">
-                  <label className="flex flex-col gap-1 text-xs text-slate-500">
-                    Nama Pasal
-                    <input value={clause.name} disabled className={`${inputClass} bg-slate-50 text-slate-400`} />
-                  </label>
-                  <label className="flex flex-col gap-1 text-xs text-slate-500">
-                    Nilai
-                    <CurrencyInput
-                      value={clause.value}
-                      onChange={(raw) => updateClauseValue(index, raw)}
-                      placeholder="Rp 0"
-                      className={inputClass}
-                    />
-                  </label>
+                <div key={index} className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500">PASAL {index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeClause(index)}
+                      disabled={clauses.length === 1}
+                      className="text-xs font-medium text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      Hapus Pasal
+                    </button>
+                  </div>
+                  <textarea
+                    value={clause.content}
+                    onChange={(e) => updateClause(index, e.target.value)}
+                    rows={3}
+                    className={inputClass}
+                  />
                 </div>
               ))}
             </div>
+            <button type="button" onClick={addClause} className={`${secondaryButtonClass} self-start`}>
+              + Tambah Pasal
+            </button>
           </div>
 
           <label className={labelClass}>
@@ -337,12 +348,15 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 rounded-lg bg-slate-50 px-4 py-3 text-sm">
-            <div className="flex justify-between text-slate-500">
-              <span>Total Nilai Kontrak</span>
-              <span className="font-semibold text-slate-900">{formatRupiah(total)}</span>
-            </div>
-          </div>
+          <label className={labelClass}>
+            Nilai Kontrak
+            <CurrencyInput
+              value={contractValue}
+              onChange={setContractValue}
+              placeholder="Rp 0"
+              className={inputClass}
+            />
+          </label>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}
           {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}

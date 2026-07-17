@@ -15,3 +15,9 @@ export function formatDateTime(unixSeconds: number | bigint): string {
     timeStyle: "short",
   });
 }
+
+/** Long-form date only (e.g. "17 Juli 2026"), for formal document text. */
+export function formatDateLong(unixSeconds: number | bigint): string {
+  const ms = Number(unixSeconds) * 1000;
+  return new Date(ms).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}

@@ -4,11 +4,11 @@ pragma solidity ^0.8.24;
 import "./UserRegistry.sol";
 
 /// @title CounterpartyRegistry
-/// @notice Legal-maintained on-chain list of counterparties (mitra/nama perusahaan kedua +
-///         alamat) used when drafting contracts, so counterparty data stays consistent and
-///         auditable instead of being freely retyped on every contract. New counterparties
-///         and edits both require Admin approval before they can be used on a contract, and
-///         every edit is kept as history rather than silently overwritten.
+/// @notice Legal-maintained on-chain list of counterparties (mitra perusahaan kedua, beserta
+///         identitas penandatangannya) used when drafting contracts, so counterparty data
+///         stays consistent and auditable instead of being freely retyped on every contract.
+///         New counterparties and edits both require Admin approval before they can be used
+///         on a contract, and every edit is kept as history rather than silently overwritten.
 contract CounterpartyRegistry {
     enum CounterpartyStatus {
         Pending,
@@ -18,8 +18,12 @@ contract CounterpartyRegistry {
 
     struct Counterparty {
         uint256 id;
-        string name;
-        string alamat;
+        string name; // Nama Perusahaan
+        string signatoryName; // Nama Penandatangan
+        string birthPlace; // Tempat Lahir (sesuai KTP)
+        uint256 birthDate; // Tanggal Lahir (sesuai KTP)
+        string alamat; // Alamat Sesuai KTP
+        string idNumber; // No. KTP/SIM
         address addedBy;
         uint256 addedAt;
         address lastEditedBy;
@@ -32,7 +36,11 @@ contract CounterpartyRegistry {
 
     struct CounterpartyEdit {
         string name;
+        string signatoryName;
+        string birthPlace;
+        uint256 birthDate;
         string alamat;
+        string idNumber;
         address editedBy;
         uint256 editedAt;
     }
@@ -77,13 +85,19 @@ contract CounterpartyRegistry {
         return keccak256(bytes(name));
     }
 
-    function addCounterparty(string calldata name, string calldata alamat)
-        external
-        onlyLegal
-        returns (uint256 id)
-    {
+    function addCounterparty(
+        string calldata name,
+        string calldata signatoryName,
+        string calldata birthPlace,
+        uint256 birthDate,
+        string calldata alamat,
+        string calldata idNumber
+    ) external onlyLegal returns (uint256 id) {
         require(bytes(name).length > 0, "CounterpartyRegistry: name required");
+        require(bytes(signatoryName).length > 0, "CounterpartyRegistry: signatory name required");
+        require(bytes(birthPlace).length > 0, "CounterpartyRegistry: birth place required");
         require(bytes(alamat).length > 0, "CounterpartyRegistry: address required");
+        require(bytes(idNumber).length > 0, "CounterpartyRegistry: id number required");
         bytes32 hash = _nameHash(name);
         require(!activeNameHashes[hash], "CounterpartyRegistry: counterparty name already exists");
 
@@ -91,7 +105,11 @@ contract CounterpartyRegistry {
         counterparties[id] = Counterparty({
             id: id,
             name: name,
+            signatoryName: signatoryName,
+            birthPlace: birthPlace,
+            birthDate: birthDate,
             alamat: alamat,
+            idNumber: idNumber,
             addedBy: msg.sender,
             addedAt: block.timestamp,
             lastEditedBy: address(0),
@@ -107,10 +125,21 @@ contract CounterpartyRegistry {
         emit CounterpartyAdded(id, name, msg.sender, block.timestamp);
     }
 
-    function editCounterparty(uint256 id, string calldata name, string calldata alamat) external {
+    function editCounterparty(
+        uint256 id,
+        string calldata name,
+        string calldata signatoryName,
+        string calldata birthPlace,
+        uint256 birthDate,
+        string calldata alamat,
+        string calldata idNumber
+    ) external {
         require(id > 0 && id < nextCounterpartyId, "CounterpartyRegistry: counterparty does not exist");
         require(bytes(name).length > 0, "CounterpartyRegistry: name required");
+        require(bytes(signatoryName).length > 0, "CounterpartyRegistry: signatory name required");
+        require(bytes(birthPlace).length > 0, "CounterpartyRegistry: birth place required");
         require(bytes(alamat).length > 0, "CounterpartyRegistry: address required");
+        require(bytes(idNumber).length > 0, "CounterpartyRegistry: id number required");
 
         Counterparty storage counterparty = counterparties[id];
         require(
@@ -134,11 +163,24 @@ contract CounterpartyRegistry {
         }
 
         editHistory[id].push(
-            CounterpartyEdit({ name: counterparty.name, alamat: counterparty.alamat, editedBy: msg.sender, editedAt: block.timestamp })
+            CounterpartyEdit({
+                name: counterparty.name,
+                signatoryName: counterparty.signatoryName,
+                birthPlace: counterparty.birthPlace,
+                birthDate: counterparty.birthDate,
+                alamat: counterparty.alamat,
+                idNumber: counterparty.idNumber,
+                editedBy: msg.sender,
+                editedAt: block.timestamp
+            })
         );
 
         counterparty.name = name;
+        counterparty.signatoryName = signatoryName;
+        counterparty.birthPlace = birthPlace;
+        counterparty.birthDate = birthDate;
         counterparty.alamat = alamat;
+        counterparty.idNumber = idNumber;
         counterparty.lastEditedBy = msg.sender;
         counterparty.lastEditedAt = block.timestamp;
         // Edited data must be re-verified before it can be used again.

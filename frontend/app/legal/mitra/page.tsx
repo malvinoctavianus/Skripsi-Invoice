@@ -98,7 +98,8 @@ function MitraList() {
           <table className="w-full min-w-[680px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
-                <th className="px-4 py-3">Nama Mitra</th>
+                <th className="px-4 py-3">Nama Perusahaan</th>
+                <th className="px-4 py-3">Penandatangan</th>
                 <th className="px-4 py-3">Alamat</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Ditambahkan</th>
@@ -113,6 +114,7 @@ function MitraList() {
                 return (
                   <tr key={counterparty.id.toString()} className="border-b border-slate-100 last:border-0">
                     <td className="px-4 py-3 font-medium text-slate-700">{counterparty.name}</td>
+                    <td className="px-4 py-3 text-slate-600">{counterparty.signatoryName}</td>
                     <td className="px-4 py-3 text-slate-600">{counterparty.alamat}</td>
                     <td className="px-4 py-3">
                       <span

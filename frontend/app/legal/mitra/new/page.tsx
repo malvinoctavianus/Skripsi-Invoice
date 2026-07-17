@@ -9,6 +9,11 @@ import { Role, COUNTERPARTY_REGISTRY_ABI, COUNTERPARTY_REGISTRY_ADDRESS } from "
 import { LEGAL_NAV } from "@/lib/navigation";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
 
+function toDateValue(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export default function NewMitraPage() {
   return (
     <RoleGuard role={Role.Legal} navItems={LEGAL_NAV}>
@@ -20,7 +25,11 @@ export default function NewMitraPage() {
 function NewMitraForm() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [signatoryName, setSignatoryName] = useState("");
+  const [birthPlace, setBirthPlace] = useState("");
+  const [birthDate, setBirthDate] = useState(toDateValue(new Date()));
   const [alamat, setAlamat] = useState("");
+  const [idNumber, setIdNumber] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
@@ -41,11 +50,28 @@ function NewMitraForm() {
       return;
     }
     if (name.trim().length === 0) {
-      setFormError("Nama mitra wajib diisi.");
+      setFormError("Nama perusahaan wajib diisi.");
+      return;
+    }
+    if (signatoryName.trim().length === 0) {
+      setFormError("Nama penandatangan wajib diisi.");
+      return;
+    }
+    if (birthPlace.trim().length === 0) {
+      setFormError("Tempat lahir wajib diisi.");
+      return;
+    }
+    const birthDateObj = new Date(birthDate);
+    if (Number.isNaN(birthDateObj.getTime())) {
+      setFormError("Tanggal lahir tidak valid.");
       return;
     }
     if (alamat.trim().length === 0) {
-      setFormError("Alamat mitra wajib diisi.");
+      setFormError("Alamat sesuai KTP wajib diisi.");
+      return;
+    }
+    if (idNumber.trim().length === 0) {
+      setFormError("No. KTP/SIM wajib diisi.");
       return;
     }
 
@@ -53,7 +79,14 @@ function NewMitraForm() {
       abi: COUNTERPARTY_REGISTRY_ABI,
       address: COUNTERPARTY_REGISTRY_ADDRESS,
       functionName: "addCounterparty",
-      args: [name.trim(), alamat.trim()],
+      args: [
+        name.trim(),
+        signatoryName.trim(),
+        birthPlace.trim(),
+        BigInt(Math.floor(birthDateObj.getTime() / 1000)),
+        alamat.trim(),
+        idNumber.trim(),
+      ],
     });
   }
 
@@ -74,7 +107,7 @@ function NewMitraForm() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className={labelClass}>
-            Nama Mitra
+            Nama Perusahaan
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -84,12 +117,53 @@ function NewMitraForm() {
           </label>
 
           <label className={labelClass}>
-            Alamat
+            Nama Penandatangan
+            <input
+              value={signatoryName}
+              onChange={(e) => setSignatoryName(e.target.value)}
+              placeholder="mis. Taufik Kusnanto"
+              className={inputClass}
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className={labelClass}>
+              Tempat Lahir (sesuai KTP)
+              <input
+                value={birthPlace}
+                onChange={(e) => setBirthPlace(e.target.value)}
+                placeholder="mis. Kulon Progo"
+                className={inputClass}
+              />
+            </label>
+            <label className={labelClass}>
+              Tanggal Lahir (sesuai KTP)
+              <input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className={inputClass}
+              />
+            </label>
+          </div>
+
+          <label className={labelClass}>
+            Alamat Sesuai KTP
             <textarea
               value={alamat}
               onChange={(e) => setAlamat(e.target.value)}
               rows={3}
-              placeholder="mis. Jl. Industri Raya No. 10, Jakarta Utara"
+              placeholder="mis. Jl. Wates Km. 12 Sentolo Kulon Progo"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            No. KTP/SIM
+            <input
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value)}
+              placeholder="mis. 757757868686868"
               className={inputClass}
             />
           </label>

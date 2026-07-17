@@ -83,8 +83,7 @@ export function paymentMethodLabel(method: PaymentMethod | number): string {
 }
 
 export type ContractClause = {
-  name: string;
-  value: bigint;
+  content: string;
 };
 
 export type ApprovalRecord = {
@@ -133,7 +132,11 @@ export function counterpartyStatusLabel(status: CounterpartyStatus | number): st
 export type Counterparty = {
   id: bigint;
   name: string;
+  signatoryName: string;
+  birthPlace: string;
+  birthDate: bigint;
   alamat: string;
+  idNumber: string;
   addedBy: `0x${string}`;
   addedAt: bigint;
   lastEditedBy: `0x${string}`;
@@ -146,7 +149,11 @@ export type Counterparty = {
 
 export type CounterpartyEdit = {
   name: string;
+  signatoryName: string;
+  birthPlace: string;
+  birthDate: bigint;
   alamat: string;
+  idNumber: string;
   editedBy: `0x${string}`;
   editedAt: bigint;
 };

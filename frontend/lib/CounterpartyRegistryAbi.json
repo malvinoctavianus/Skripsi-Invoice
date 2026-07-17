@@ -118,7 +118,27 @@
       },
       {
         "internalType": "string",
+        "name": "signatoryName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "birthPlace",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "birthDate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
         "name": "alamat",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "idNumber",
         "type": "string"
       }
     ],
@@ -147,7 +167,27 @@
       },
       {
         "internalType": "string",
+        "name": "signatoryName",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "birthPlace",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "birthDate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
         "name": "alamat",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "idNumber",
         "type": "string"
       }
     ],
@@ -174,7 +214,27 @@
           },
           {
             "internalType": "string",
+            "name": "signatoryName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "birthPlace",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "birthDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
             "name": "alamat",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "idNumber",
             "type": "string"
           },
           {
@@ -244,7 +304,27 @@
           },
           {
             "internalType": "string",
+            "name": "signatoryName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "birthPlace",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "birthDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
             "name": "alamat",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "idNumber",
             "type": "string"
           },
           {
@@ -320,7 +400,27 @@
           },
           {
             "internalType": "string",
+            "name": "signatoryName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "birthPlace",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "birthDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
             "name": "alamat",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "idNumber",
             "type": "string"
           },
           {
@@ -391,7 +491,27 @@
           },
           {
             "internalType": "string",
+            "name": "signatoryName",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "birthPlace",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "birthDate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
             "name": "alamat",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "idNumber",
             "type": "string"
           },
           {

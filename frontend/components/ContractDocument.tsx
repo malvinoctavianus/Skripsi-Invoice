@@ -53,28 +53,18 @@ export function ContractDocument({ contract, headerRight }: { contract: CompanyC
         </p>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
-              <th className="py-2 pr-3">Pasal / Klausul</th>
-              <th className="py-2">Nilai</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contract.clauses.map((clause, idx) => (
-              <tr key={idx} className="border-b border-slate-100 last:border-0">
-                <td className="py-2.5 pr-3 text-slate-700">{clause.name}</td>
-                <td className="py-2.5 text-slate-700">{formatRupiah(clause.value)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex flex-col gap-4">
+        {contract.clauses.map((clause, idx) => (
+          <div key={idx}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">PASAL {idx + 1}</p>
+            <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{clause.content}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="mt-6 flex flex-col items-end gap-1 text-sm">
+      <div className="mt-6 flex flex-col items-end gap-1 border-t border-slate-100 pt-4 text-sm">
         <p className="text-slate-500">
-          Total Nilai Kontrak:{" "}
+          Nilai Kontrak:{" "}
           <span className="font-semibold text-slate-900">{formatRupiah(contract.contractValue)}</span>
         </p>
       </div>

@@ -1,112 +1,175 @@
-import { CompanyContract, contractStatusLabel, paymentMethodLabel } from "./contract";
-import { formatDateTime, formatRupiah } from "./format";
+import { CompanyContract, Counterparty, paymentMethodLabel } from "./contract";
+import { formatDateLong, formatRupiah } from "./format";
 
-async function buildContractPdf(doc: CompanyContract) {
+export type PdfPartyInfo = {
+  /** Pihak Pertama - representasi wallet Legal yang mengajukan kontrak ini. */
+  legalUsername: string;
+  legalWallet: string;
+  /** Pihak Kedua - data mitra lengkap, kalau ditemukan di CounterpartyRegistry. */
+  counterparty?: Counterparty;
+};
+
+const PAGE_BOTTOM = 280;
+const MARGIN_X = 20;
+
+function ensureSpace(pdf: import("jspdf").jsPDF, y: number, needed: number): number {
+  if (y + needed > PAGE_BOTTOM) {
+    pdf.addPage();
+    return 20;
+  }
+  return y;
+}
+
+async function buildContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
   const { default: jsPDF } = await import("jspdf");
-  const autoTable = (await import("jspdf-autotable")).default;
 
   const pdf = new jsPDF();
   const contractId = `KTR-${doc.id.toString().padStart(4, "0")}`;
   const pageWidth = pdf.internal.pageSize.getWidth();
-  const marginX = 14;
+  const contentWidth = pageWidth - MARGIN_X * 2;
 
-  pdf.setFontSize(18);
+  let y = 22;
+
+  // Title, centered, bold, underlined.
+  pdf.setFontSize(14);
   pdf.setFont("helvetica", "bold");
-  pdf.text("SURAT KONTRAK KERJA SAMA", pageWidth / 2, 20, { align: "center" });
-
-  pdf.setFontSize(10);
+  const title = "SURAT PERJANJIAN KERJASAMA";
+  pdf.text(title, pageWidth / 2, y, { align: "center" });
+  const titleWidth = pdf.getTextWidth(title);
+  pdf.setDrawColor(0);
+  pdf.line(pageWidth / 2 - titleWidth / 2, y + 1.5, pageWidth / 2 + titleWidth / 2, y + 1.5);
+  y += 6;
+  pdf.setFontSize(9);
   pdf.setFont("helvetica", "normal");
-  pdf.setTextColor(100);
-  pdf.text("Sistem Approval Kontrak Kerja Sama - Diamankan dengan Blockchain", pageWidth / 2, 26, {
-    align: "center",
-  });
+  pdf.setTextColor(120);
+  pdf.text(`${contractId} - Diamankan dengan Blockchain`, pageWidth / 2, y, { align: "center" });
   pdf.setTextColor(0);
-
-  pdf.setDrawColor(220);
-  pdf.line(marginX, 32, pageWidth - marginX, 32);
-
-  let y = 42;
-  const labelX = marginX;
-  const valueX = marginX + 32;
-  const rightLabelX = pageWidth / 2 + 10;
-  const rightValueX = rightLabelX + 28;
-
-  pdf.setFont("helvetica", "bold");
-  pdf.text("No. Kontrak", labelX, y);
-  pdf.text("Status", rightLabelX, y);
-  pdf.setFont("helvetica", "normal");
-  pdf.text(contractId, valueX, y);
-  pdf.text(contractStatusLabel(doc.status), rightValueX, y);
-
-  y += 7;
-  pdf.setFont("helvetica", "bold");
-  pdf.text("Tanggal", labelX, y);
-  pdf.text("Pihak Kedua", rightLabelX, y);
-  pdf.setFont("helvetica", "normal");
-  pdf.text(formatDateTime(doc.contractDate), valueX, y);
-  pdf.text(doc.counterpartyName, rightValueX, y, { maxWidth: pageWidth - rightValueX - marginX });
-
-  y += 7;
-  pdf.setFont("helvetica", "bold");
-  pdf.text("Masa Berlaku", labelX, y);
-  pdf.text("Metode Bayar", rightLabelX, y);
-  pdf.setFont("helvetica", "normal");
-  pdf.text(`${formatDateTime(doc.validFrom)} s/d ${formatDateTime(doc.validUntil)}`, valueX, y, {
-    maxWidth: rightLabelX - valueX - 4,
-  });
-  pdf.text(paymentMethodLabel(doc.paymentMethod), rightValueX, y);
-
-  if (doc.keterangan) {
-    y += 7;
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Keterangan", labelX, y);
-    pdf.setFont("helvetica", "normal");
-    pdf.text(doc.keterangan, valueX, y, { maxWidth: pageWidth - valueX - marginX });
-  }
-
   y += 12;
 
-  autoTable(pdf, {
-    startY: y,
-    head: [["Pasal / Klausul", "Nilai"]],
-    body: doc.clauses.map((clause) => [clause.name, formatRupiah(clause.value)]),
-    headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
-    styles: { fontSize: 10, cellPadding: 3 },
-    columnStyles: {
-      1: { halign: "right" },
-    },
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(
+    `Pada hari ini, ${formatDateLong(doc.contractDate)}, kami yang bertanda tangan di bawah ini:`,
+    MARGIN_X,
+    y
+  );
+  y += 8;
+
+  function identityRow(label: string, value: string) {
+    pdf.text(label, MARGIN_X + 4, y);
+    pdf.text(":", MARGIN_X + 42, y);
+    const lines = pdf.splitTextToSize(value, contentWidth - 48);
+    pdf.text(lines, MARGIN_X + 46, y);
+    y += 6 * lines.length;
+  }
+
+  identityRow("Nama", party.legalUsername);
+  identityRow("Wallet", party.legalWallet);
+  y += 1;
+  pdf.text("Yang selanjutnya disebut sebagai PIHAK PERTAMA.", MARGIN_X, y);
+  y += 9;
+
+  if (party.counterparty) {
+    const cp = party.counterparty;
+    identityRow("Nama Perusahaan", cp.name);
+    identityRow("Nama Penandatangan", cp.signatoryName);
+    identityRow("Tempat, Tgl Lahir", `${cp.birthPlace}, ${formatDateLong(cp.birthDate)}`);
+    identityRow("Alamat", cp.alamat);
+    identityRow("No. KTP/SIM", cp.idNumber);
+  } else {
+    identityRow("Nama Perusahaan", doc.counterpartyName);
+  }
+  y += 1;
+  pdf.text("Selanjutnya akan disebut dengan PIHAK KEDUA.", MARGIN_X, y);
+  y += 10;
+
+  pdf.text(
+    "Kedua belah pihak telah sepakat untuk mengadakan kerjasama usaha dengan",
+    MARGIN_X,
+    y
+  );
+  y += 5;
+  pdf.text("ketentuan-ketentuan yang diatur sebagai berikut:", MARGIN_X, y);
+  y += 10;
+
+  // Ringkasan kontrak (data praktis di luar format surat klasik).
+  y = ensureSpace(pdf, y, 26);
+  pdf.setDrawColor(220);
+  pdf.setFillColor(248, 250, 252);
+  pdf.roundedRect(MARGIN_X, y - 5, contentWidth, 22, 2, 2, "FD");
+  pdf.setFontSize(9);
+  pdf.text(`Nilai Kerja Sama: ${formatRupiah(doc.contractValue)}`, MARGIN_X + 4, y);
+  pdf.text(`Metode Pembayaran: ${paymentMethodLabel(doc.paymentMethod)}`, MARGIN_X + 4, y + 6);
+  pdf.text(
+    `Masa Berlaku: ${formatDateLong(doc.validFrom)} s/d ${formatDateLong(doc.validUntil)}`,
+    MARGIN_X + 4,
+    y + 12
+  );
+  if (doc.keterangan) {
+    const ketLines = pdf.splitTextToSize(`Keterangan: ${doc.keterangan}`, contentWidth - 8);
+    pdf.text(ketLines, MARGIN_X + 4, y + 18);
+  }
+  y += 26;
+  pdf.setFontSize(10);
+
+  // Pasal-pasal.
+  doc.clauses.forEach((clause, idx) => {
+    y = ensureSpace(pdf, y, 16);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(`PASAL ${idx + 1}`, pageWidth / 2, y, { align: "center" });
+    y += 6;
+    pdf.setFont("helvetica", "normal");
+    const lines = pdf.splitTextToSize(clause.content, contentWidth);
+    for (const line of lines) {
+      y = ensureSpace(pdf, y, 6);
+      pdf.text(line, MARGIN_X, y, { align: "left", maxWidth: contentWidth });
+      y += 5.5;
+    }
+    y += 4;
   });
 
-  const finalY = (pdf as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
-  const totalsX = pageWidth - marginX;
+  y = ensureSpace(pdf, y, 20);
+  const closing = pdf.splitTextToSize(
+    "Demikian surat perjanjian ini kami buat sebenar-benarnya dalam rangkap dua yang mana " +
+      "masing-masing rangkap mempunyai kekuatan hukum yang sama. Dan dalam pembuatan " +
+      "perjanjian kerjasama ini tidak ada paksaan dari pihak manapun.",
+    contentWidth
+  );
+  pdf.text(closing, MARGIN_X, y);
+  y += 5.5 * closing.length + 6;
 
+  y = ensureSpace(pdf, y, 45);
+  pdf.text(formatDateLong(doc.contractDate), pageWidth - MARGIN_X, y, { align: "right" });
+  y += 10;
+
+  const colLeftX = MARGIN_X + contentWidth * 0.2;
+  const colRightX = MARGIN_X + contentWidth * 0.8;
+  pdf.text("PIHAK PERTAMA,", colLeftX, y, { align: "center" });
+  pdf.text("PIHAK KEDUA,", colRightX, y, { align: "center" });
+  y += 20;
+  pdf.setFontSize(8);
+  pdf.setTextColor(140);
+  pdf.text("(Materai)", pageWidth / 2, y - 8, { align: "center" });
+  pdf.setTextColor(0);
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "bold");
-  pdf.text("Total Nilai Kontrak", totalsX - 60, finalY, { align: "left" });
-  pdf.text(formatRupiah(doc.contractValue), totalsX, finalY, { align: "right" });
+  pdf.text(party.legalUsername, colLeftX, y, { align: "center" });
+  pdf.text(party.counterparty?.signatoryName ?? doc.counterpartyName, colRightX, y, { align: "center" });
   pdf.setFont("helvetica", "normal");
-
-  pdf.setFontSize(8);
-  pdf.setTextColor(150);
-  pdf.text(
-    `Dibuat otomatis dari data on-chain pada ${formatDateTime(BigInt(Math.floor(Date.now() / 1000)))}`,
-    marginX,
-    pdf.internal.pageSize.getHeight() - 10
-  );
 
   return { doc: pdf, contractId };
 }
 
 /** Opens the contract PDF in a new tab using the browser's built-in PDF viewer, so the
  * user can look at it first - they can download it themselves from within that viewer. */
-export async function previewContractPdf(doc: CompanyContract) {
-  const { doc: pdf } = await buildContractPdf(doc);
+export async function previewContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
+  const { doc: pdf } = await buildContractPdf(doc, party);
   const blobUrl = pdf.output("bloburl");
   window.open(blobUrl, "_blank");
 }
 
 /** Triggers an immediate file download, bypassing preview. */
-export async function downloadContractPdf(doc: CompanyContract) {
-  const { doc: pdf, contractId } = await buildContractPdf(doc);
+export async function downloadContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
+  const { doc: pdf, contractId } = await buildContractPdf(doc, party);
   pdf.save(`${contractId}.pdf`);
 }
