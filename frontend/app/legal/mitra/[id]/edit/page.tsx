@@ -8,12 +8,17 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { useCounterparty, useCounterpartyEditHistory } from "@/lib/useCounterparties";
 import { Role, COUNTERPARTY_REGISTRY_ABI, COUNTERPARTY_REGISTRY_ADDRESS, CounterpartyStatus } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
+import { isAlphanumericMix, isLettersOnly, isValidIdNumber } from "@/lib/mitraValidation";
 import { formatDateTime } from "@/lib/format";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
 
 function toDateValue(date: Date): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function stripDigits(value: string): string {
+  return value.replace(/[0-9]/g, "");
 }
 
 export default function EditMitraPage({ params }: { params: Promise<{ id: string }> }) {
@@ -117,12 +122,24 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
       setFormError("Nama perusahaan wajib diisi.");
       return;
     }
+    if (!isLettersOnly(name)) {
+      setFormError("Nama perusahaan harus berupa huruf saja, tidak boleh angka.");
+      return;
+    }
     if (signatoryName.trim().length === 0) {
       setFormError("Nama penandatangan wajib diisi.");
       return;
     }
+    if (!isLettersOnly(signatoryName)) {
+      setFormError("Nama penandatangan harus berupa huruf saja, tidak boleh angka.");
+      return;
+    }
     if (birthPlace.trim().length === 0) {
       setFormError("Tempat lahir wajib diisi.");
+      return;
+    }
+    if (!isLettersOnly(birthPlace)) {
+      setFormError("Tempat lahir harus berupa huruf saja, tidak boleh angka.");
       return;
     }
     const birthDateObj = new Date(birthDate);
@@ -134,8 +151,16 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
       setFormError("Alamat sesuai KTP wajib diisi.");
       return;
     }
+    if (!isAlphanumericMix(alamat)) {
+      setFormError("Alamat harus berupa campuran huruf dan angka.");
+      return;
+    }
     if (idNumber.trim().length === 0) {
       setFormError("No. KTP/SIM wajib diisi.");
+      return;
+    }
+    if (!isValidIdNumber(idNumber)) {
+      setFormError("No. KTP/SIM harus berupa angka sebanyak 16 digit.");
       return;
     }
 
@@ -175,14 +200,14 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className={labelClass}>
             Nama Perusahaan
-            <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+            <input value={name} onChange={(e) => setName(stripDigits(e.target.value))} className={inputClass} />
           </label>
 
           <label className={labelClass}>
             Nama Penandatangan
             <input
               value={signatoryName}
-              onChange={(e) => setSignatoryName(e.target.value)}
+              onChange={(e) => setSignatoryName(stripDigits(e.target.value))}
               className={inputClass}
             />
           </label>
@@ -190,7 +215,11 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
           <div className="grid grid-cols-2 gap-3">
             <label className={labelClass}>
               Tempat Lahir (sesuai KTP)
-              <input value={birthPlace} onChange={(e) => setBirthPlace(e.target.value)} className={inputClass} />
+              <input
+                value={birthPlace}
+                onChange={(e) => setBirthPlace(stripDigits(e.target.value))}
+                className={inputClass}
+              />
             </label>
             <label className={labelClass}>
               Tanggal Lahir (sesuai KTP)
@@ -211,11 +240,21 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
               rows={3}
               className={inputClass}
             />
+            <span className="text-xs font-normal text-slate-400">
+              Harus campuran huruf dan angka (mis. ada nomor jalan/rumah).
+            </span>
           </label>
 
           <label className={labelClass}>
             No. KTP/SIM
-            <input value={idNumber} onChange={(e) => setIdNumber(e.target.value)} className={inputClass} />
+            <input
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value.replace(/[^0-9]/g, "").slice(0, 16))}
+              inputMode="numeric"
+              maxLength={16}
+              className={inputClass}
+            />
+            <span className="text-xs font-normal text-slate-400">Harus persis 16 digit angka.</span>
           </label>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}

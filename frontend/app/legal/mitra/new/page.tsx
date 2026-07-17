@@ -7,7 +7,12 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
 import { Role, COUNTERPARTY_REGISTRY_ABI, COUNTERPARTY_REGISTRY_ADDRESS } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
+import { isAlphanumericMix, isLettersOnly, isValidIdNumber } from "@/lib/mitraValidation";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
+
+function stripDigits(value: string): string {
+  return value.replace(/[0-9]/g, "");
+}
 
 function toDateValue(date: Date): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
@@ -53,12 +58,24 @@ function NewMitraForm() {
       setFormError("Nama perusahaan wajib diisi.");
       return;
     }
+    if (!isLettersOnly(name)) {
+      setFormError("Nama perusahaan harus berupa huruf saja, tidak boleh angka.");
+      return;
+    }
     if (signatoryName.trim().length === 0) {
       setFormError("Nama penandatangan wajib diisi.");
       return;
     }
+    if (!isLettersOnly(signatoryName)) {
+      setFormError("Nama penandatangan harus berupa huruf saja, tidak boleh angka.");
+      return;
+    }
     if (birthPlace.trim().length === 0) {
       setFormError("Tempat lahir wajib diisi.");
+      return;
+    }
+    if (!isLettersOnly(birthPlace)) {
+      setFormError("Tempat lahir harus berupa huruf saja, tidak boleh angka.");
       return;
     }
     const birthDateObj = new Date(birthDate);
@@ -70,8 +87,16 @@ function NewMitraForm() {
       setFormError("Alamat sesuai KTP wajib diisi.");
       return;
     }
+    if (!isAlphanumericMix(alamat)) {
+      setFormError("Alamat harus berupa campuran huruf dan angka.");
+      return;
+    }
     if (idNumber.trim().length === 0) {
       setFormError("No. KTP/SIM wajib diisi.");
+      return;
+    }
+    if (!isValidIdNumber(idNumber)) {
+      setFormError("No. KTP/SIM harus berupa angka sebanyak 16 digit.");
       return;
     }
 
@@ -110,7 +135,7 @@ function NewMitraForm() {
             Nama Perusahaan
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(stripDigits(e.target.value))}
               placeholder="mis. PT Mitra Sejahtera"
               className={inputClass}
             />
@@ -120,7 +145,7 @@ function NewMitraForm() {
             Nama Penandatangan
             <input
               value={signatoryName}
-              onChange={(e) => setSignatoryName(e.target.value)}
+              onChange={(e) => setSignatoryName(stripDigits(e.target.value))}
               placeholder="mis. Taufik Kusnanto"
               className={inputClass}
             />
@@ -131,7 +156,7 @@ function NewMitraForm() {
               Tempat Lahir (sesuai KTP)
               <input
                 value={birthPlace}
-                onChange={(e) => setBirthPlace(e.target.value)}
+                onChange={(e) => setBirthPlace(stripDigits(e.target.value))}
                 placeholder="mis. Kulon Progo"
                 className={inputClass}
               />
@@ -156,16 +181,22 @@ function NewMitraForm() {
               placeholder="mis. Jl. Wates Km. 12 Sentolo Kulon Progo"
               className={inputClass}
             />
+            <span className="text-xs font-normal text-slate-400">
+              Harus campuran huruf dan angka (mis. ada nomor jalan/rumah).
+            </span>
           </label>
 
           <label className={labelClass}>
             No. KTP/SIM
             <input
               value={idNumber}
-              onChange={(e) => setIdNumber(e.target.value)}
-              placeholder="mis. 757757868686868"
+              onChange={(e) => setIdNumber(e.target.value.replace(/[^0-9]/g, "").slice(0, 16))}
+              inputMode="numeric"
+              maxLength={16}
+              placeholder="mis. 7577578686868001"
               className={inputClass}
             />
+            <span className="text-xs font-normal text-slate-400">Harus persis 16 digit angka.</span>
           </label>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}
