@@ -5,7 +5,6 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { useAllInvoices } from "@/lib/useInvoices";
-import { useDashboardSetting } from "@/lib/dashboardSettings";
 import { Invoice, InvoiceStatus, invoiceStatusLabel, Role } from "@/lib/contract";
 import { FINANCE_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
@@ -21,7 +20,6 @@ export default function FinancePage() {
 
 function FinanceDashboard() {
   const { username } = useCurrentUser();
-  const { title, message } = useDashboardSetting("finance");
   const { invoices, isLoading } = useAllInvoices();
 
   const queue = invoices.filter((inv) => inv.status === InvoiceStatus.PendingFinance);
@@ -36,17 +34,11 @@ function FinanceDashboard() {
   return (
     <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Dashboard Finance</h1>
         <p className="mt-1 text-sm text-slate-500">
           Login berhasil sebagai <strong className="text-slate-700">{username}</strong>
         </p>
       </div>
-
-      {message && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          {message}
-        </div>
-      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Menunggu Approval" value={queue.length} />

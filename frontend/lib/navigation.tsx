@@ -32,22 +32,6 @@ const UsersIcon = (
   </svg>
 );
 
-const ClockIcon = (
-  <svg {...iconProps}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
-  </svg>
-);
-
-const PenIcon = (
-  <svg {...iconProps}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 18.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487Z"
-    />
-  </svg>
-);
-
 const UserShieldIcon = (
   <svg {...iconProps}>
     <path
@@ -83,6 +67,4 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/register", label: "Manajemen User", icon: UserShieldIcon },
   { href: "/admin/accounts", label: "Akun Terdaftar", icon: UsersIcon },
   { href: "/admin/suppliers", label: "Persetujuan Supplier", icon: BuildingIcon },
-  { href: "/admin/history", label: "History Transaksi", icon: ClockIcon },
-  { href: "/admin/settings", label: "Edit Tampilan", icon: PenIcon },
 ];

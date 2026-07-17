@@ -6,7 +6,6 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { usePurchasingInvoices } from "@/lib/useInvoices";
-import { useDashboardSetting } from "@/lib/dashboardSettings";
 import { invoiceStatusLabel, Invoice, Role } from "@/lib/contract";
 import { PURCHASING_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
@@ -24,7 +23,6 @@ export default function PurchasingPage() {
 
 function PurchasingDashboard() {
   const { username } = useCurrentUser();
-  const { title, message } = useDashboardSetting("purchasing");
   const { pending, approved, rejected, isLoading } = usePurchasingInvoices();
   const [tab, setTab] = useState<Tab>("pending");
 
@@ -35,7 +33,7 @@ function PurchasingDashboard() {
     <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Dashboard Purchasing</h1>
           <p className="mt-1 text-sm text-slate-500">
             Login sebagai <strong className="text-slate-700">{username}</strong>
           </p>
@@ -44,12 +42,6 @@ function PurchasingDashboard() {
           + Tambah Invoice
         </Link>
       </div>
-
-      {message && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-          {message}
-        </div>
-      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Pending" value={pending.length} />

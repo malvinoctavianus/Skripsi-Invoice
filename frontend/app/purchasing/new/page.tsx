@@ -239,7 +239,6 @@ function NewInvoiceForm() {
             />
             <span className="text-xs font-normal text-slate-400">
               Bisa dipilih {MAX_DAYS_BACK} hari ke belakang s/d {MAX_DAYS_FORWARD} hari ke depan.
-              Jam submit tetap tercatat otomatis di blockchain.
             </span>
           </label>
 
