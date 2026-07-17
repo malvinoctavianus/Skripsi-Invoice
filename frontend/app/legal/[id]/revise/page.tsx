@@ -7,7 +7,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { CurrencyInput } from "@/components/CurrencyInput";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useContract } from "@/lib/useContracts";
-import { CONTRACT_ABI, CONTRACT_ADDRESS, CompanyContract, ContractStatus, PaymentMethod, paymentMethodLabel, Role } from "@/lib/contract";
+import { CONTRACT_ABI, CONTRACT_ADDRESS, CompanyContract, ContractStatus, Role } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
@@ -56,7 +56,6 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
   const [validUntil, setValidUntil] = useState(toDateValue(now));
   const [clauses, setClauses] = useState<ClauseRow[]>([{ content: "" }]);
   const [keterangan, setKeterangan] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [contractValue, setContractValue] = useState("0");
   const [formError, setFormError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -71,7 +70,6 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
     setValidUntil(toDateValueFromUnix(contract.validUntil));
     setClauses(contract.clauses.map((clause) => ({ content: clause.content })));
     setKeterangan(contract.keterangan);
-    setPaymentMethod(contract.paymentMethod);
     setContractValue(contract.contractValue.toString());
     setInitialized(true);
   }, [contract, initialized]);
@@ -179,10 +177,6 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
       setFormError("Keterangan wajib diisi.");
       return;
     }
-    if (paymentMethod === null) {
-      setFormError("Metode pembayaran wajib dipilih.");
-      return;
-    }
 
     const validClauses = clauses.filter((clause) => clause.content.trim().length > 0);
     if (validClauses.length === 0) {
@@ -202,7 +196,6 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
         BigInt(Math.floor(validUntilDate.getTime() / 1000)),
         validClauses.map((clause) => ({ content: clause.content.trim() })),
         keterangan.trim(),
-        paymentMethod,
         BigInt(contractValue || "0"),
       ],
     });
@@ -321,32 +314,6 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
               className={inputClass}
             />
           </label>
-
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-slate-700">Metode Pembayaran</span>
-            <div className="flex gap-2">
-              {[PaymentMethod.Cash, PaymentMethod.Transfer].map((method) => (
-                <label
-                  key={method}
-                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                    paymentMethod === method
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment-method"
-                    value={method}
-                    checked={paymentMethod === method}
-                    onChange={() => setPaymentMethod(method)}
-                    className="sr-only"
-                  />
-                  {paymentMethodLabel(method)}
-                </label>
-              ))}
-            </div>
-          </div>
 
           <label className={labelClass}>
             Nilai Kontrak

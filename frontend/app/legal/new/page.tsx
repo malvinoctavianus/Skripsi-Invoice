@@ -7,7 +7,7 @@ import { decodeEventLog } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { CurrencyInput } from "@/components/CurrencyInput";
 import { RoleGuard } from "@/components/RoleGuard";
-import { CONTRACT_ABI, CONTRACT_ADDRESS, PaymentMethod, paymentMethodLabel, Role } from "@/lib/contract";
+import { CONTRACT_ABI, CONTRACT_ADDRESS, Role } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
 import { useApprovedCounterparties } from "@/lib/useCounterparties";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
@@ -21,7 +21,6 @@ type Draft = {
   validUntil: string;
   clauses: ClauseRow[];
   keterangan: string;
-  paymentMethod: PaymentMethod | null;
   contractValue: string;
 };
 
@@ -80,7 +79,6 @@ function NewContractForm() {
   const [validUntil, setValidUntil] = useState(draft?.validUntil ?? toDateValue(addDays(now, 365)));
   const [clauses, setClauses] = useState<ClauseRow[]>(draft?.clauses ?? [{ content: "" }]);
   const [keterangan, setKeterangan] = useState(draft?.keterangan ?? "");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(draft?.paymentMethod ?? null);
   const [contractValue, setContractValue] = useState(draft?.contractValue ?? "0");
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -97,11 +95,10 @@ function NewContractForm() {
       validUntil,
       clauses,
       keterangan,
-      paymentMethod,
       contractValue,
     };
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-  }, [counterpartyName, selectedDate, validFrom, validUntil, clauses, keterangan, paymentMethod, contractValue]);
+  }, [counterpartyName, selectedDate, validFrom, validUntil, clauses, keterangan, contractValue]);
 
   useEffect(() => {
     if (!isSuccess || !receipt) return;
@@ -152,10 +149,6 @@ function NewContractForm() {
       setFormError("Keterangan wajib diisi.");
       return;
     }
-    if (paymentMethod === null) {
-      setFormError("Metode pembayaran wajib dipilih.");
-      return;
-    }
 
     const datePart = new Date(selectedDate);
     if (Number.isNaN(datePart.getTime())) {
@@ -200,7 +193,6 @@ function NewContractForm() {
         BigInt(Math.floor(validUntilDate.getTime() / 1000)),
         validClauses.map((clause) => ({ content: clause.content.trim() })),
         keterangan.trim(),
-        paymentMethod,
         BigInt(contractValue || "0"),
       ],
     });
@@ -341,32 +333,6 @@ function NewContractForm() {
             />
           </label>
 
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-slate-700">Metode Pembayaran</span>
-            <div className="flex gap-2">
-              {[PaymentMethod.Cash, PaymentMethod.Transfer].map((method) => (
-                <label
-                  key={method}
-                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                    paymentMethod === method
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment-method"
-                    value={method}
-                    checked={paymentMethod === method}
-                    onChange={() => setPaymentMethod(method)}
-                    className="sr-only"
-                  />
-                  {paymentMethodLabel(method)}
-                </label>
-              ))}
-            </div>
-          </div>
-
           <label className={labelClass}>
             Nilai Kontrak
             <CurrencyInput value={contractValue} onChange={setContractValue} placeholder="Rp 0" className={inputClass} />
@@ -381,9 +347,7 @@ function NewContractForm() {
 
           <button
             type="submit"
-            disabled={
-              isPending || isConfirming || counterpartyName.trim().length === 0 || paymentMethod === null
-            }
+            disabled={isPending || isConfirming || counterpartyName.trim().length === 0}
             className={primaryButtonClass}
           >
             {isPending
@@ -394,9 +358,6 @@ function NewContractForm() {
           </button>
           {counterpartyName.trim().length === 0 && (
             <p className="text-xs text-slate-400">Pilih pihak kedua dulu sebelum bisa submit.</p>
-          )}
-          {counterpartyName.trim().length > 0 && paymentMethod === null && (
-            <p className="text-xs text-slate-400">Pilih metode pembayaran dulu sebelum bisa submit.</p>
           )}
         </form>
       </div>

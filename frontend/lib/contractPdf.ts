@@ -1,4 +1,4 @@
-import { CompanyContract, Counterparty, paymentMethodLabel } from "./contract";
+import { CompanyContract, Counterparty } from "./contract";
 import { formatDateLong, formatRupiah } from "./format";
 
 export type PdfPartyInfo = {
@@ -93,23 +93,22 @@ async function buildContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
   y += 10;
 
   // Ringkasan kontrak (data praktis di luar format surat klasik).
-  y = ensureSpace(pdf, y, 26);
+  y = ensureSpace(pdf, y, 20);
   pdf.setDrawColor(220);
   pdf.setFillColor(248, 250, 252);
-  pdf.roundedRect(MARGIN_X, y - 5, contentWidth, 22, 2, 2, "FD");
+  pdf.roundedRect(MARGIN_X, y - 5, contentWidth, 16, 2, 2, "FD");
   pdf.setFontSize(9);
   pdf.text(`Nilai Kerja Sama: ${formatRupiah(doc.contractValue)}`, MARGIN_X + 4, y);
-  pdf.text(`Metode Pembayaran: ${paymentMethodLabel(doc.paymentMethod)}`, MARGIN_X + 4, y + 6);
   pdf.text(
     `Masa Berlaku: ${formatDateLong(doc.validFrom)} s/d ${formatDateLong(doc.validUntil)}`,
     MARGIN_X + 4,
-    y + 12
+    y + 6
   );
   if (doc.keterangan) {
     const ketLines = pdf.splitTextToSize(`Keterangan: ${doc.keterangan}`, contentWidth - 8);
-    pdf.text(ketLines, MARGIN_X + 4, y + 18);
+    pdf.text(ketLines, MARGIN_X + 4, y + 12);
   }
-  y += 26;
+  y += 20;
   pdf.setFontSize(10);
 
   // Pasal-pasal.

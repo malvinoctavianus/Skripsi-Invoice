@@ -435,11 +435,6 @@
         "type": "string"
       },
       {
-        "internalType": "enum ContractApproval.PaymentMethod",
-        "name": "paymentMethod",
-        "type": "uint8"
-      },
-      {
         "internalType": "uint256",
         "name": "contractValue",
         "type": "uint256"
@@ -536,11 +531,6 @@
             "internalType": "string",
             "name": "keterangan",
             "type": "string"
-          },
-          {
-            "internalType": "enum ContractApproval.PaymentMethod",
-            "name": "paymentMethod",
-            "type": "uint8"
           },
           {
             "components": [
@@ -775,11 +765,6 @@
         "internalType": "string",
         "name": "keterangan",
         "type": "string"
-      },
-      {
-        "internalType": "enum ContractApproval.PaymentMethod",
-        "name": "paymentMethod",
-        "type": "uint8"
       },
       {
         "internalType": "uint256",

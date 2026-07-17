@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { CompanyContract, ContractStatus, contractStatusLabel, paymentMethodLabel } from "@/lib/contract";
+import { CompanyContract, ContractStatus, contractStatusLabel } from "@/lib/contract";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import { cardClass, statusBadgeClass } from "@/lib/ui";
 
@@ -22,9 +22,6 @@ export function ContractDocument({ contract, headerRight }: { contract: CompanyC
           <p className="text-sm text-slate-500">Tanggal: {formatDateTime(contract.contractDate)}</p>
           <p className="text-sm text-slate-500">
             Masa Berlaku: {formatDateTime(contract.validFrom)} s/d {formatDateTime(contract.validUntil)}
-          </p>
-          <p className="text-sm text-slate-500">
-            Metode Pembayaran: <span className="text-slate-700">{paymentMethodLabel(contract.paymentMethod)}</span>
           </p>
           <span
             className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${

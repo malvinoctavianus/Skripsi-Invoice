@@ -66,22 +66,6 @@ export function contractStatusLabel(status: ContractStatus | number): string {
   }
 }
 
-export enum PaymentMethod {
-  Cash = 0,
-  Transfer = 1,
-}
-
-export function paymentMethodLabel(method: PaymentMethod | number): string {
-  switch (method) {
-    case PaymentMethod.Cash:
-      return "Cash";
-    case PaymentMethod.Transfer:
-      return "Transfer";
-    default:
-      return "Unknown";
-  }
-}
-
 export type ContractClause = {
   content: string;
 };
@@ -105,7 +89,6 @@ export type CompanyContract = {
   contractValue: bigint;
   status: ContractStatus;
   keterangan: string;
-  paymentMethod: PaymentMethod;
   clauses: readonly ContractClause[];
   history: readonly ApprovalRecord[];
 };

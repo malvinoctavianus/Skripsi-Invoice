@@ -24,11 +24,6 @@ contract ContractApproval is ERC721 {
         RejectedByDirektur
     }
 
-    enum PaymentMethod {
-        Cash,
-        Transfer
-    }
-
     struct ContractClause {
         string content;
     }
@@ -52,7 +47,6 @@ contract ContractApproval is ERC721 {
         uint256 contractValue;
         Status status;
         string keterangan;
-        PaymentMethod paymentMethod;
         ContractClause[] clauses;
         ApprovalRecord[] history;
     }
@@ -87,7 +81,6 @@ contract ContractApproval is ERC721 {
         uint256 validUntil,
         ContractClause[] calldata clauses,
         string calldata keterangan,
-        PaymentMethod paymentMethod,
         uint256 contractValue
     ) external onlyRole(UserRegistry.Role.Legal) returns (uint256 id) {
         require(bytes(counterpartyName).length > 0, "ContractApproval: counterparty name required");
@@ -112,7 +105,6 @@ contract ContractApproval is ERC721 {
         doc.contractValue = contractValue;
         doc.status = Status.PendingFinance;
         doc.keterangan = keterangan;
-        doc.paymentMethod = paymentMethod;
         for (uint256 i = 0; i < clauses.length; i++) {
             doc.clauses.push(clauses[i]);
         }
@@ -132,7 +124,6 @@ contract ContractApproval is ERC721 {
         uint256 validUntil,
         ContractClause[] calldata clauses,
         string calldata keterangan,
-        PaymentMethod paymentMethod,
         uint256 contractValue
     ) external {
         ContractDoc storage doc = _requireContract(id);
@@ -157,7 +148,6 @@ contract ContractApproval is ERC721 {
         doc.contractValue = contractValue;
         doc.status = Status.PendingFinance;
         doc.keterangan = keterangan;
-        doc.paymentMethod = paymentMethod;
 
         delete doc.clauses;
         for (uint256 i = 0; i < clauses.length; i++) {
