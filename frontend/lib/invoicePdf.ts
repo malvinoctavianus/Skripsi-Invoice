@@ -92,23 +92,6 @@ async function buildInvoicePdf(invoice: Invoice) {
   doc.text(formatRupiah(invoice.totalAmount - invoice.dpAmount), totalsX, finalY + 15, { align: "right" });
   doc.setFont("helvetica", "normal");
 
-  let sigY = finalY + 30;
-  const approvals = invoice.history.filter((r) => r.approved);
-  if (approvals.length > 0) {
-    doc.setFont("helvetica", "bold");
-    doc.text("Riwayat Persetujuan", marginX, sigY);
-    doc.setFont("helvetica", "normal");
-    sigY += 6;
-    for (const record of approvals) {
-      doc.text(
-        `- ${record.roleLabel} (${record.wallet}) - ${formatDateTime(record.timestamp)}`,
-        marginX,
-        sigY
-      );
-      sigY += 6;
-    }
-  }
-
   doc.setFontSize(8);
   doc.setTextColor(150);
   doc.text(
