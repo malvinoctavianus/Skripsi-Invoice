@@ -90,7 +90,15 @@ function DirekturContractDetail({ params }: { params: Promise<{ id: string }> })
     <main className="flex w-full max-w-3xl flex-col gap-6 px-8 py-10">
       {backLink}
 
-      <ContractDocument contract={contract} headerRight={<ViewPdfButton contract={contract} />} />
+      <ContractDocument
+        contract={contract}
+        headerRight={
+          <ViewPdfButton
+            contract={contract}
+            visibleStatuses={[ContractStatus.PendingDirektur, ContractStatus.Approved]}
+          />
+        }
+      />
 
       <div>
         <ApprovalStatusPanel contract={contract} />

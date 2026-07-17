@@ -7,7 +7,13 @@ import { useAllCounterparties } from "@/lib/useCounterparties";
 import { previewContractPdf } from "@/lib/contractPdf";
 import { secondaryButtonClass } from "@/lib/ui";
 
-export function ViewPdfButton({ contract }: { contract: CompanyContract }) {
+export function ViewPdfButton({
+  contract,
+  visibleStatuses = [ContractStatus.Approved],
+}: {
+  contract: CompanyContract;
+  visibleStatuses?: ContractStatus[];
+}) {
   const [opening, setOpening] = useState(false);
 
   const { data: legalUserData } = useReadContract({
@@ -22,7 +28,7 @@ export function ViewPdfButton({ contract }: { contract: CompanyContract }) {
   const { counterparties } = useAllCounterparties();
   const counterparty = counterparties.find((c) => c.name === contract.counterpartyName);
 
-  if (contract.status !== ContractStatus.Approved) return null;
+  if (!visibleStatuses.includes(contract.status)) return null;
 
   return (
     <button
