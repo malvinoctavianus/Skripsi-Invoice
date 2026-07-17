@@ -20,17 +20,20 @@ function storageKey(address: string, tokenId: bigint) {
 /** One-click prompt for MetaMask to add this contract's NFT certificate to the wallet's
  * NFT tab. MetaMask (and every wallet) requires explicit user confirmation before adding
  * an asset - no dApp can inject it silently - so this is as automatic as it can get.
- * Once successfully added, that fact is remembered per wallet+token so the button won't
- * offer to add it again. */
+ * A dApp has no way to detect that the user later removed the asset from MetaMask, so the
+ * button stays clickable even after a successful add - it just remembers (per wallet+token)
+ * that it was added before, to show a hint, and lets the user re-trigger the prompt as many
+ * times as needed (e.g. after removing the NFT from MetaMask). */
 export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
   const { address } = useAccount();
   const [status, setStatus] = useState<"idle" | "pending" | "added" | "error">("idle");
+  const [addedBefore, setAddedBefore] = useState(false);
   const [hasWallet, setHasWallet] = useState(false);
 
   useEffect(() => {
     setHasWallet(Boolean(window.ethereum));
     if (address && window.localStorage.getItem(storageKey(address, tokenId))) {
-      setStatus("added");
+      setAddedBefore(true);
     }
   }, [address, tokenId]);
 
@@ -50,6 +53,7 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
       });
       if (added) {
         window.localStorage.setItem(storageKey(address, tokenId), "1");
+        setAddedBefore(true);
         setStatus("added");
       } else {
         setStatus("idle");
@@ -66,16 +70,23 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
       <button
         type="button"
         onClick={handleClick}
-        disabled={status === "pending" || status === "added"}
+        disabled={status === "pending"}
         className={`${secondaryButtonClass} disabled:cursor-not-allowed disabled:opacity-60`}
       >
         {status === "pending"
           ? "Menunggu konfirmasi MetaMask..."
           : status === "added"
-            ? "✔ Sudah Ditambahkan ke MetaMask"
-            : "+ Tambahkan Sertifikat NFT ke MetaMask"}
+            ? "✔ Ditambahkan ke MetaMask"
+            : addedBefore
+              ? "Tambahkan Lagi ke MetaMask"
+              : "+ Tambahkan Sertifikat NFT ke MetaMask"}
       </button>
       {status === "error" && <p className="text-xs text-red-600">Gagal menambahkan, coba lagi.</p>}
+      {addedBefore && status !== "pending" && (
+        <p className="text-xs text-slate-400">
+          Kalau sudah dihapus dari MetaMask, klik lagi untuk menambahkannya kembali.
+        </p>
+      )}
     </div>
   );
 }
