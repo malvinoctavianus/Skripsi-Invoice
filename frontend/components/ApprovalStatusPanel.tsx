@@ -3,8 +3,8 @@
 import { useReadContracts } from "wagmi";
 import {
   ApprovalRecord,
-  Invoice,
-  InvoiceStatus,
+  CompanyContract,
+  ContractStatus,
   USER_REGISTRY_ABI,
   USER_REGISTRY_ADDRESS,
 } from "@/lib/contract";
@@ -14,11 +14,11 @@ function findRecord(history: readonly ApprovalRecord[], roleLabel: string): Appr
   return history.find((r) => r.roleLabel === roleLabel);
 }
 
-export function ApprovalStatusPanel({ invoice }: { invoice: Invoice }) {
-  const financeRecord = findRecord(invoice.history, "Finance");
-  const managerRecord = findRecord(invoice.history, "Manager");
+export function ApprovalStatusPanel({ contract }: { contract: CompanyContract }) {
+  const financeRecord = findRecord(contract.history, "Finance");
+  const direkturRecord = findRecord(contract.history, "Direktur");
 
-  const wallets = [financeRecord?.wallet, managerRecord?.wallet].filter(
+  const wallets = [financeRecord?.wallet, direkturRecord?.wallet].filter(
     (wallet): wallet is `0x${string}` => Boolean(wallet)
   );
 
@@ -42,15 +42,15 @@ export function ApprovalStatusPanel({ invoice }: { invoice: Invoice }) {
   const rows: { label: string; record: ApprovalRecord | undefined; blocked: boolean }[] = [
     { label: "Finance", record: financeRecord, blocked: false },
     {
-      label: "Manager",
-      record: managerRecord,
-      blocked: invoice.status === InvoiceStatus.RejectedByFinance,
+      label: "Direktur",
+      record: direkturRecord,
+      blocked: contract.status === ContractStatus.RejectedByFinance,
     },
   ];
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="mb-3 text-sm font-semibold text-slate-800">Persetujuan Invoice</h3>
+      <h3 className="mb-3 text-sm font-semibold text-slate-800">Persetujuan Kontrak</h3>
       <div className="flex flex-col divide-y divide-slate-100">
         {rows.map(({ label, record, blocked }) => (
           <div key={label} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">

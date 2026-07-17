@@ -25,11 +25,11 @@ export function Header() {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-600 text-sm font-bold text-white">
-            IA
+            KA
           </span>
           <span className="flex flex-col leading-tight">
             <span className="text-sm font-semibold text-white">
-              Sistem Approval Invoice
+              Sistem Approval Kontrak
             </span>
             <span className="text-[11px] tracking-wide text-slate-400">
               BLOCKCHAIN VERIFIED

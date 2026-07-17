@@ -4,9 +4,9 @@ import Link from "next/link";
 import { RoleGuard } from "@/components/RoleGuard";
 import { StatCard } from "@/components/StatCard";
 import { useCurrentUser } from "@/lib/useCurrentUser";
-import { useAllInvoices } from "@/lib/useInvoices";
+import { useAllContracts } from "@/lib/useContracts";
 import { useAllUsers } from "@/lib/useUsers";
-import { InvoiceStatus, Role } from "@/lib/contract";
+import { ContractStatus, Role } from "@/lib/contract";
 import { ADMIN_NAV } from "@/lib/navigation";
 import { cardClass, primaryButtonClass } from "@/lib/ui";
 
@@ -20,13 +20,13 @@ export default function AdminPage() {
 
 function AdminDashboard() {
   const { username } = useCurrentUser();
-  const { invoices } = useAllInvoices();
+  const { contracts } = useAllContracts();
   const { users } = useAllUsers();
 
-  const pendingCount = invoices.filter(
-    (inv) => inv.status === InvoiceStatus.PendingFinance || inv.status === InvoiceStatus.PendingManager
+  const pendingCount = contracts.filter(
+    (doc) => doc.status === ContractStatus.PendingFinance || doc.status === ContractStatus.PendingDirektur
   ).length;
-  const approvedCount = invoices.filter((inv) => inv.status === InvoiceStatus.Approved).length;
+  const approvedCount = contracts.filter((doc) => doc.status === ContractStatus.Approved).length;
 
   return (
     <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
@@ -52,7 +52,7 @@ function AdminDashboard() {
           }
         />
         <StatCard
-          label="Invoice Menunggu Approval"
+          label="Kontrak Menunggu Approval"
           value={pendingCount}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
@@ -61,7 +61,7 @@ function AdminDashboard() {
           }
         />
         <StatCard
-          label="Invoice Approved"
+          label="Kontrak Approved"
           value={approvedCount}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
@@ -75,7 +75,7 @@ function AdminDashboard() {
         <div className={`${cardClass} flex flex-col items-start gap-3`}>
           <h2 className="text-sm font-semibold text-slate-800">Manajemen User</h2>
           <p className="text-sm text-slate-500">
-            Daftarkan wallet baru untuk karyawan Purchasing, Finance, atau Manager.
+            Daftarkan wallet baru untuk karyawan Legal, Finance, atau Direktur.
           </p>
           <Link href="/register" className={primaryButtonClass}>
             Buka Halaman Register User

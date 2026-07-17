@@ -10,20 +10,20 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { ViewPdfButton } from "@/components/ViewPdfButton";
 import { useContract } from "@/lib/useContracts";
 import { CONTRACT_ABI, CONTRACT_ADDRESS, CompanyContract, ContractStatus, Role } from "@/lib/contract";
-import { FINANCE_NAV } from "@/lib/navigation";
+import { DIREKTUR_NAV } from "@/lib/navigation";
 import { cardClass, errorAlertClass, inputClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
 type ActionMode = "approve" | "reject" | null;
 
-export default function FinanceContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function DirekturContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <RoleGuard role={Role.Finance} navItems={FINANCE_NAV}>
-      <FinanceContractDetail params={params} />
+    <RoleGuard role={Role.Direktur} navItems={DIREKTUR_NAV}>
+      <DirekturContractDetail params={params} />
     </RoleGuard>
   );
 }
 
-function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) {
+function DirekturContractDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const { data, isLoading } = useContract(BigInt(id));
@@ -38,13 +38,13 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
 
   useEffect(() => {
     if (isSuccess) {
-      router.push("/finance");
+      router.push("/direktur");
     }
   }, [isSuccess, router]);
 
   const backLink = (
-    <Link href="/finance" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
-      &larr; Kembali ke Antrian Finance
+    <Link href="/direktur" className="text-sm text-slate-500 transition-colors hover:text-slate-900">
+      &larr; Kembali ke Daftar Kontrak
     </Link>
   );
 
@@ -66,7 +66,7 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
     );
   }
 
-  const isPendingFinance = contract.status === ContractStatus.PendingFinance;
+  const isPendingDirektur = contract.status === ContractStatus.PendingDirektur;
 
   function handleConfirm() {
     setFormError(null);
@@ -81,7 +81,7 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
     writeContract({
       abi: CONTRACT_ABI,
       address: CONTRACT_ADDRESS,
-      functionName: actionMode === "approve" ? "approveByFinance" : "rejectByFinance",
+      functionName: actionMode === "approve" ? "approveByDirektur" : "rejectByDirektur",
       args: [contract.id, note.trim()],
     });
   }
@@ -96,9 +96,9 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
         <ApprovalStatusPanel contract={contract} />
       </div>
 
-      {isPendingFinance ? (
+      {isPendingDirektur ? (
         <div className={cardClass}>
-          <h2 className="mb-3 text-sm font-semibold text-slate-800">Aksi Finance</h2>
+          <h2 className="mb-3 text-sm font-semibold text-slate-800">Aksi Direktur</h2>
 
           {!actionMode && (
             <div className="flex gap-3">
@@ -135,12 +135,19 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
                   rows={3}
                   placeholder={
                     actionMode === "approve"
-                      ? "mis. Sesuai anggaran, lanjutkan ke Direktur"
-                      : "mis. Melebihi budget bulan ini"
+                      ? "mis. Disetujui, lanjutkan ke penandatanganan"
+                      : "mis. Mitra tidak sesuai daftar rekanan"
                   }
                   className={inputClass}
                 />
               </label>
+
+              {actionMode === "approve" && (
+                <p className="text-xs text-slate-400">
+                  Approve final akan langsung menerbitkan sertifikat NFT ke wallet Legal di
+                  blockchain.
+                </p>
+              )}
 
               {formError && <p className={errorAlertClass}>{formError}</p>}
               {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}

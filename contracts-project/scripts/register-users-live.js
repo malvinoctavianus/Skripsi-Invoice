@@ -1,18 +1,18 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 
-// Registers Purchasing/Finance/Manager wallets against an already-deployed UserRegistry,
+// Registers Legal/Finance/Direktur wallets against an already-deployed UserRegistry,
 // using the real ADMIN_PRIVATE_KEY signer. Works on any live network (Sepolia, etc.) since
 // it doesn't rely on Hardhat's impersonation (which only exists on local networks).
 
 const REGISTRY_ADDRESS = process.env.USER_REGISTRY_ADDRESS;
 
-const Role = { Purchasing: 2, Finance: 3, Manager: 4 };
+const Role = { Legal: 2, Finance: 3, Direktur: 4 };
 
 const USERS = [
-  { wallet: "0x92A7cb6c486A2452ac9CA73646A511b63f198Adc", username: "Purchasing 1", role: Role.Purchasing },
+  { wallet: "0x92A7cb6c486A2452ac9CA73646A511b63f198Adc", username: "Legal 1", role: Role.Legal },
   { wallet: "0x18677C7262aE7fDaC0357846fAC356d2d24aEF81", username: "Finance 1", role: Role.Finance },
-  { wallet: "0xBC6C6Ec0D7e0b2D4D18935e37fFd66c00A48788d", username: "Manager", role: Role.Manager },
+  { wallet: "0xBC6C6Ec0D7e0b2D4D18935e37fFd66c00A48788d", username: "Direktur", role: Role.Direktur },
 ];
 
 async function main() {

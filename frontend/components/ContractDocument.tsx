@@ -1,0 +1,83 @@
+"use client";
+
+import { ReactNode } from "react";
+import { CompanyContract, ContractStatus, contractStatusLabel, paymentMethodLabel } from "@/lib/contract";
+import { formatDateTime, formatRupiah } from "@/lib/format";
+import { cardClass, statusBadgeClass } from "@/lib/ui";
+
+export function ContractDocument({ contract, headerRight }: { contract: CompanyContract; headerRight?: ReactNode }) {
+  const contractId = `KTR-${contract.id.toString().padStart(4, "0")}`;
+  const isRejected =
+    contract.status === ContractStatus.RejectedByFinance || contract.status === ContractStatus.RejectedByDirektur;
+  const rejection = contract.history.find((r) => !r.approved);
+
+  return (
+    <div className={cardClass}>
+      <div className="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <h1 className="text-lg font-semibold text-slate-900">{contractId}</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Pihak Kedua: <span className="text-slate-700">{contract.counterpartyName}</span>
+          </p>
+          <p className="text-sm text-slate-500">Tanggal: {formatDateTime(contract.contractDate)}</p>
+          <p className="text-sm text-slate-500">
+            Masa Berlaku: {formatDateTime(contract.validFrom)} s/d {formatDateTime(contract.validUntil)}
+          </p>
+          <p className="text-sm text-slate-500">
+            Metode Pembayaran: <span className="text-slate-700">{paymentMethodLabel(contract.paymentMethod)}</span>
+          </p>
+          <span
+            className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
+              statusBadgeClass[contractStatusLabel(contract.status)] ?? "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {contractStatusLabel(contract.status)}
+          </span>
+        </div>
+
+        {headerRight}
+      </div>
+
+      {isRejected && rejection && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="font-medium">
+            Kontrak ditolak oleh {rejection.roleLabel} pada {formatDateTime(rejection.timestamp)}.
+          </p>
+          {rejection.note && <p className="mt-1">Alasan: {rejection.note}</p>}
+        </div>
+      )}
+
+      {contract.keterangan && (
+        <p className="mb-4 text-sm text-slate-600">
+          <span className="font-medium text-slate-700">Keterangan:</span> {contract.keterangan}
+        </p>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
+              <th className="py-2 pr-3">Pasal / Klausul</th>
+              <th className="py-2">Nilai</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contract.clauses.map((clause, idx) => (
+              <tr key={idx} className="border-b border-slate-100 last:border-0">
+                <td className="py-2.5 pr-3 text-slate-700">{clause.name}</td>
+                <td className="py-2.5 text-slate-700">{formatRupiah(clause.value)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-6 flex flex-col items-end gap-1 text-sm">
+        <p className="text-slate-500">
+          Total Nilai Kontrak:{" "}
+          <span className="font-semibold text-slate-900">{formatRupiah(contract.contractValue)}</span>
+        </p>
+      </div>
+    </div>
+  );
+}

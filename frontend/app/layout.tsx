@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Invoice Approval - Blockchain",
-  description: "Sistem approval verified invoice berbasis blockchain",
+  title: "Contract Approval - Blockchain",
+  description: "Sistem approval kontrak perusahaan berbasis blockchain",
 };
 
 export default function RootLayout({
@@ -34,7 +34,7 @@ export default function RootLayout({
           <Header />
           {children}
           <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-400">
-            © {new Date().getFullYear()} Sistem Approval Invoice — Diamankan dengan Blockchain
+            © {new Date().getFullYear()} Sistem Approval Kontrak — Diamankan dengan Blockchain
           </footer>
         </Providers>
       </body>

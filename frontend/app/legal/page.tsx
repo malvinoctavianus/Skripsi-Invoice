@@ -1,0 +1,137 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { RoleGuard } from "@/components/RoleGuard";
+import { StatCard } from "@/components/StatCard";
+import { useCurrentUser } from "@/lib/useCurrentUser";
+import { useLegalContracts } from "@/lib/useContracts";
+import { contractStatusLabel, CompanyContract, Role } from "@/lib/contract";
+import { LEGAL_NAV } from "@/lib/navigation";
+import { formatRupiah, formatDateTime } from "@/lib/format";
+import { cardClass, primaryButtonClass, statusBadgeClass } from "@/lib/ui";
+
+type Tab = "pending" | "approved" | "rejected";
+
+export default function LegalPage() {
+  return (
+    <RoleGuard role={Role.Legal} navItems={LEGAL_NAV}>
+      <LegalDashboard />
+    </RoleGuard>
+  );
+}
+
+function LegalDashboard() {
+  const { username } = useCurrentUser();
+  const { pending, approved, rejected, isLoading } = useLegalContracts();
+  const [tab, setTab] = useState<Tab>("pending");
+
+  const listByTab: Record<Tab, CompanyContract[]> = { pending, approved, rejected };
+  const list = listByTab[tab];
+
+  return (
+    <main className="flex w-full max-w-5xl flex-col gap-6 px-8 py-10">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Dashboard Legal</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Login sebagai <strong className="text-slate-700">{username}</strong>
+          </p>
+        </div>
+        <Link href="/legal/new" className={primaryButtonClass}>
+          + Tambah Kontrak
+        </Link>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Pending" value={pending.length} />
+        <StatCard label="Approved" value={approved.length} />
+        <StatCard label="Ditolak" value={rejected.length} />
+      </div>
+
+      <div className="flex gap-2">
+        {(
+          [
+            { key: "pending", label: `Pending (${pending.length})` },
+            { key: "approved", label: `Approved (${approved.length})` },
+            { key: "rejected", label: `Ditolak (${rejected.length})` },
+          ] as { key: Tab; label: string }[]
+        ).map((opt) => (
+          <label
+            key={opt.key}
+            className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              tab === opt.key
+                ? "border-blue-600 bg-blue-600 text-white"
+                : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            <input
+              type="radio"
+              name="contract-tab"
+              value={opt.key}
+              checked={tab === opt.key}
+              onChange={() => setTab(opt.key)}
+              className="sr-only"
+            />
+            {opt.label}
+          </label>
+        ))}
+      </div>
+
+      {isLoading && <p className="text-sm text-slate-500">Memuat kontrak...</p>}
+
+      {!isLoading && list.length === 0 && (
+        <div className={`${cardClass} flex flex-col items-center gap-2 py-12 text-center`}>
+          <p className="font-medium text-slate-700">Belum ada kontrak</p>
+          <p className="max-w-sm text-sm text-slate-500">
+            {tab === "pending"
+              ? "Klik \"+ Tambah Kontrak\" untuk membuat kontrak baru."
+              : "Belum ada kontrak pada kategori ini."}
+          </p>
+        </div>
+      )}
+
+      {!isLoading && list.length > 0 && (
+        <div className={`${cardClass} overflow-x-auto p-0`}>
+          <table className="w-full min-w-[560px] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
+                <th className="px-6 py-3">ID</th>
+                <th className="px-6 py-3">Pihak Kedua</th>
+                <th className="px-6 py-3">Tanggal</th>
+                <th className="px-6 py-3">Nilai</th>
+                <th className="px-6 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((doc) => (
+                <tr key={doc.id.toString()} className="border-b border-slate-100 last:border-0">
+                  <td className="px-6 py-3">
+                    <Link
+                      href={`/legal/${doc.id}`}
+                      className="whitespace-nowrap font-medium text-blue-600 hover:underline"
+                    >
+                      KTR-{doc.id.toString().padStart(4, "0")}
+                    </Link>
+                  </td>
+                  <td className="px-6 py-3 text-slate-700">{doc.counterpartyName}</td>
+                  <td className="px-6 py-3 text-slate-500">{formatDateTime(doc.contractDate)}</td>
+                  <td className="px-6 py-3 text-slate-700">{formatRupiah(doc.contractValue)}</td>
+                  <td className="px-6 py-3">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${
+                        statusBadgeClass[contractStatusLabel(doc.status)] ?? "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {contractStatusLabel(doc.status)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </main>
+  );
+}

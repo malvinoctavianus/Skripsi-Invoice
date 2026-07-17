@@ -1,66 +1,66 @@
 import type { Abi } from "viem";
 import userRegistryAbi from "./UserRegistryAbi.json";
-import invoiceApprovalAbi from "./InvoiceApprovalAbi.json";
-import supplierRegistryAbi from "./SupplierRegistryAbi.json";
+import contractApprovalAbi from "./ContractApprovalAbi.json";
+import counterpartyRegistryAbi from "./CounterpartyRegistryAbi.json";
 
 export const USER_REGISTRY_ADDRESS = process.env
   .NEXT_PUBLIC_USER_REGISTRY_ADDRESS as `0x${string}` | undefined;
 
 export const USER_REGISTRY_ABI = userRegistryAbi as Abi;
 
-export const INVOICE_ADDRESS = process.env
-  .NEXT_PUBLIC_INVOICE_ADDRESS as `0x${string}` | undefined;
+export const CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}` | undefined;
 
-export const INVOICE_ABI = invoiceApprovalAbi as Abi;
+export const CONTRACT_ABI = contractApprovalAbi as Abi;
 
-export const SUPPLIER_REGISTRY_ADDRESS = process.env
-  .NEXT_PUBLIC_SUPPLIER_REGISTRY_ADDRESS as `0x${string}` | undefined;
+export const COUNTERPARTY_REGISTRY_ADDRESS = process.env
+  .NEXT_PUBLIC_COUNTERPARTY_REGISTRY_ADDRESS as `0x${string}` | undefined;
 
-export const SUPPLIER_REGISTRY_ABI = supplierRegistryAbi as Abi;
+export const COUNTERPARTY_REGISTRY_ABI = counterpartyRegistryAbi as Abi;
 
 export enum Role {
   None = 0,
   Admin = 1,
-  Purchasing = 2,
+  Legal = 2,
   Finance = 3,
-  Manager = 4,
+  Direktur = 4,
 }
 
 export function roleLabel(role: Role | number): string {
   switch (role) {
     case Role.Admin:
       return "Admin";
-    case Role.Purchasing:
-      return "Purchasing";
+    case Role.Legal:
+      return "Legal";
     case Role.Finance:
       return "Finance";
-    case Role.Manager:
-      return "Manager";
+    case Role.Direktur:
+      return "Direktur";
     default:
       return "Unknown";
   }
 }
 
-export enum InvoiceStatus {
+export enum ContractStatus {
   PendingFinance = 0,
-  PendingManager = 1,
+  PendingDirektur = 1,
   Approved = 2,
   RejectedByFinance = 3,
-  RejectedByManager = 4,
+  RejectedByDirektur = 4,
 }
 
-export function invoiceStatusLabel(status: InvoiceStatus | number): string {
+export function contractStatusLabel(status: ContractStatus | number): string {
   switch (status) {
-    case InvoiceStatus.PendingFinance:
+    case ContractStatus.PendingFinance:
       return "Menunggu Finance";
-    case InvoiceStatus.PendingManager:
-      return "Menunggu Manager";
-    case InvoiceStatus.Approved:
+    case ContractStatus.PendingDirektur:
+      return "Menunggu Direktur";
+    case ContractStatus.Approved:
       return "Approved";
-    case InvoiceStatus.RejectedByFinance:
+    case ContractStatus.RejectedByFinance:
       return "Ditolak Finance";
-    case InvoiceStatus.RejectedByManager:
-      return "Ditolak Manager";
+    case ContractStatus.RejectedByDirektur:
+      return "Ditolak Direktur";
     default:
       return "Unknown";
   }
@@ -82,10 +82,9 @@ export function paymentMethodLabel(method: PaymentMethod | number): string {
   }
 }
 
-export type InvoiceItem = {
+export type ContractClause = {
   name: string;
-  qty: bigint;
-  unitPrice: bigint;
+  value: bigint;
 };
 
 export type ApprovalRecord = {
@@ -96,41 +95,42 @@ export type ApprovalRecord = {
   timestamp: bigint;
 };
 
-export type Invoice = {
+export type CompanyContract = {
   id: bigint;
-  purchasing: `0x${string}`;
-  supplierName: string;
-  invoiceDate: bigint;
+  legal: `0x${string}`;
+  counterpartyName: string;
+  contractDate: bigint;
   createdAt: bigint;
-  dpAmount: bigint;
-  totalAmount: bigint;
-  status: InvoiceStatus;
+  validFrom: bigint;
+  validUntil: bigint;
+  contractValue: bigint;
+  status: ContractStatus;
   keterangan: string;
   paymentMethod: PaymentMethod;
-  items: readonly InvoiceItem[];
+  clauses: readonly ContractClause[];
   history: readonly ApprovalRecord[];
 };
 
-export enum SupplierStatus {
+export enum CounterpartyStatus {
   Pending = 0,
   Approved = 1,
   Rejected = 2,
 }
 
-export function supplierStatusLabel(status: SupplierStatus | number): string {
+export function counterpartyStatusLabel(status: CounterpartyStatus | number): string {
   switch (status) {
-    case SupplierStatus.Pending:
+    case CounterpartyStatus.Pending:
       return "Menunggu Persetujuan";
-    case SupplierStatus.Approved:
+    case CounterpartyStatus.Approved:
       return "Approved";
-    case SupplierStatus.Rejected:
+    case CounterpartyStatus.Rejected:
       return "Ditolak";
     default:
       return "Unknown";
   }
 }
 
-export type Supplier = {
+export type Counterparty = {
   id: bigint;
   name: string;
   alamat: string;
@@ -138,13 +138,13 @@ export type Supplier = {
   addedAt: bigint;
   lastEditedBy: `0x${string}`;
   lastEditedAt: bigint;
-  status: SupplierStatus;
+  status: CounterpartyStatus;
   reviewedBy: `0x${string}`;
   reviewedAt: bigint;
   reviewNote: string;
 };
 
-export type SupplierEdit = {
+export type CounterpartyEdit = {
   name: string;
   alamat: string;
   editedBy: `0x${string}`;

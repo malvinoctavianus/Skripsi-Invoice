@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Invoice, InvoiceStatus } from "@/lib/contract";
-import { previewInvoicePdf } from "@/lib/invoicePdf";
+import { CompanyContract, ContractStatus } from "@/lib/contract";
+import { previewContractPdf } from "@/lib/contractPdf";
 import { secondaryButtonClass } from "@/lib/ui";
 
-export function ViewPdfButton({ invoice }: { invoice: Invoice }) {
+export function ViewPdfButton({ contract }: { contract: CompanyContract }) {
   const [opening, setOpening] = useState(false);
 
-  if (invoice.status !== InvoiceStatus.Approved) return null;
+  if (contract.status !== ContractStatus.Approved) return null;
 
   return (
     <button
       onClick={async () => {
         setOpening(true);
         try {
-          await previewInvoicePdf(invoice);
+          await previewContractPdf(contract);
         } finally {
           setOpening(false);
         }

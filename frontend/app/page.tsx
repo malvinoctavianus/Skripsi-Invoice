@@ -8,9 +8,9 @@ import { Role } from "@/lib/contract";
 import { cardClass } from "@/lib/ui";
 
 const ROLE_ROUTE: Partial<Record<Role, string>> = {
-  [Role.Purchasing]: "/purchasing",
+  [Role.Legal]: "/legal",
   [Role.Finance]: "/finance",
-  [Role.Manager]: "/manager",
+  [Role.Direktur]: "/direktur",
 };
 
 export default function HomePage() {
@@ -33,10 +33,10 @@ export default function HomePage() {
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-8 px-6 py-16 text-center">
       <div className="flex flex-col items-center gap-3">
         <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white shadow-sm">
-          IA
+          KA
         </span>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Sistem Approval Invoice
+          Sistem Approval Kontrak
         </h1>
         <p className="max-w-sm text-sm text-slate-500">
           Autentikasi menggunakan wallet MetaMask. Hubungkan wallet Anda untuk langsung masuk —

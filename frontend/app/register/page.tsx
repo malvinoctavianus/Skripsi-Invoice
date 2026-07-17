@@ -29,7 +29,7 @@ export default function RegisterPage() {
 function RegisterForm() {
   const [wallet, setWallet] = useState("");
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState<Role>(Role.Purchasing);
+  const [role, setRole] = useState<Role>(Role.Legal);
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
@@ -66,7 +66,7 @@ function RegisterForm() {
         <div className="mb-6">
           <h1 className="text-lg font-semibold text-slate-900">Register User Baru</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Hanya Admin yang bisa mendaftarkan wallet Purchasing, Finance, atau Manager.
+            Hanya Admin yang bisa mendaftarkan wallet Legal, Finance, atau Direktur.
             Otentikasi selanjutnya cukup dengan menghubungkan wallet ini di MetaMask — tidak
             perlu password.
           </p>
@@ -88,7 +88,7 @@ function RegisterForm() {
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="mis. purchasing1"
+              placeholder="mis. legal1"
               className={inputClass}
             />
           </label>
@@ -100,9 +100,9 @@ function RegisterForm() {
               onChange={(e) => setRole(Number(e.target.value) as Role)}
               className={inputClass}
             >
-              <option value={Role.Purchasing}>{roleLabel(Role.Purchasing)}</option>
+              <option value={Role.Legal}>{roleLabel(Role.Legal)}</option>
               <option value={Role.Finance}>{roleLabel(Role.Finance)}</option>
-              <option value={Role.Manager}>{roleLabel(Role.Manager)}</option>
+              <option value={Role.Direktur}>{roleLabel(Role.Direktur)}</option>
             </select>
           </label>
 

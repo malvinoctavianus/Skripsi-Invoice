@@ -52,19 +52,19 @@ const BuildingIcon = (
   </svg>
 );
 
-export const PURCHASING_NAV: NavItem[] = [
-  { href: "/purchasing", label: "Dashboard", icon: GridIcon },
-  { href: "/purchasing/new", label: "Tambah Invoice", icon: PlusIcon },
-  { href: "/purchasing/suppliers", label: "Data Supplier", icon: BuildingIcon },
+export const LEGAL_NAV: NavItem[] = [
+  { href: "/legal", label: "Dashboard", icon: GridIcon },
+  { href: "/legal/new", label: "Tambah Kontrak", icon: PlusIcon },
+  { href: "/legal/mitra", label: "Data Mitra", icon: BuildingIcon },
 ];
 
 export const FINANCE_NAV: NavItem[] = [{ href: "/finance", label: "Dashboard", icon: GridIcon }];
 
-export const MANAGER_NAV: NavItem[] = [{ href: "/manager", label: "Dashboard", icon: GridIcon }];
+export const DIREKTUR_NAV: NavItem[] = [{ href: "/direktur", label: "Dashboard", icon: GridIcon }];
 
 export const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: GridIcon },
   { href: "/register", label: "Manajemen User", icon: UserShieldIcon },
   { href: "/admin/accounts", label: "Akun Terdaftar", icon: UsersIcon },
-  { href: "/admin/suppliers", label: "Persetujuan Supplier", icon: BuildingIcon },
+  { href: "/admin/mitra", label: "Persetujuan Mitra", icon: BuildingIcon },
 ];

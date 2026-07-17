@@ -2,11 +2,11 @@
 pragma solidity ^0.8.24;
 
 /// @title UserRegistry
-/// @notice Handles wallet-based registration for the invoice approval system.
+/// @notice Handles wallet-based registration for the company contract approval system.
 /// @dev Design notes (why it's built this way):
 ///      - The admin wallet is fixed at deployment (immutable) and can never be changed,
 ///        matching the requirement that the admin identity is permanently trusted.
-///      - Only the admin can register new users (Purchasing / Finance / Manager), since
+///      - Only the admin can register new users (Legal / Finance / Direktur), since
 ///        every new wallet must be validated by the admin before it can transact.
 ///      - Authentication is wallet-only: connecting the registered MetaMask wallet already
 ///        proves control of the private key, so there is no separate password. A wallet is
@@ -15,9 +15,9 @@ contract UserRegistry {
     enum Role {
         None,
         Admin,
-        Purchasing,
+        Legal,
         Finance,
-        Manager
+        Direktur
     }
 
     struct User {
@@ -53,10 +53,10 @@ contract UserRegistry {
         emit UserRegistered(msg.sender, adminUsername, Role.Admin, block.timestamp);
     }
 
-    /// @notice Admin-only registration of a new Purchasing/Finance/Manager wallet.
+    /// @notice Admin-only registration of a new Legal/Finance/Direktur wallet.
     /// @param wallet The MetaMask address being registered.
     /// @param username Human-readable identity used during smart-contract handshakes.
-    /// @param role Must be Purchasing, Finance, or Manager (never None/Admin).
+    /// @param role Must be Legal, Finance, or Direktur (never None/Admin).
     function registerUser(
         address wallet,
         string calldata username,
@@ -66,7 +66,7 @@ contract UserRegistry {
         require(!users[wallet].isRegistered, "UserRegistry: wallet already registered");
         require(bytes(username).length > 0, "UserRegistry: username required");
         require(
-            role == Role.Purchasing || role == Role.Finance || role == Role.Manager,
+            role == Role.Legal || role == Role.Finance || role == Role.Direktur,
             "UserRegistry: invalid role"
         );
 

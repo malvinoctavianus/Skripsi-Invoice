@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { INVOICE_ADDRESS } from "@/lib/contract";
+import { CONTRACT_ADDRESS } from "@/lib/contract";
 import { secondaryButtonClass } from "@/lib/ui";
 
 declare global {
@@ -17,7 +17,7 @@ function storageKey(address: string, tokenId: bigint) {
   return `nft-added-to-metamask-${address.toLowerCase()}-${tokenId.toString()}`;
 }
 
-/** One-click prompt for MetaMask to add this invoice's NFT certificate to the wallet's
+/** One-click prompt for MetaMask to add this contract's NFT certificate to the wallet's
  * NFT tab. MetaMask (and every wallet) requires explicit user confirmation before adding
  * an asset - no dApp can inject it silently - so this is as automatic as it can get.
  * Once successfully added, that fact is remembered per wallet+token so the button won't
@@ -35,7 +35,7 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
   }, [address, tokenId]);
 
   async function handleClick() {
-    if (!window.ethereum || !INVOICE_ADDRESS || !address) return;
+    if (!window.ethereum || !CONTRACT_ADDRESS || !address) return;
     setStatus("pending");
     try {
       const added = await window.ethereum.request({
@@ -43,7 +43,7 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
         params: {
           type: "ERC721",
           options: {
-            address: INVOICE_ADDRESS,
+            address: CONTRACT_ADDRESS,
             tokenId: tokenId.toString(),
           },
         },
