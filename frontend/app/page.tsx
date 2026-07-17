@@ -36,7 +36,7 @@ export default function HomePage() {
           KA
         </span>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-          Sistem Approval Kontrak
+          Sistem Approval Kontrak Kerja Sama
         </h1>
         <p className="max-w-sm text-sm text-slate-500">
           Autentikasi menggunakan wallet MetaMask. Hubungkan wallet Anda untuk langsung masuk —

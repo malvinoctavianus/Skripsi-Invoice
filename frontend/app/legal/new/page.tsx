@@ -210,10 +210,10 @@ function NewContractForm() {
 
       <div className={cardClass}>
         <div className="mb-6">
-          <h1 className="text-lg font-semibold text-slate-900">Tambah Kontrak</h1>
+          <h1 className="text-lg font-semibold text-slate-900">Tambah Kontrak Kerja Sama</h1>
           <p className="mt-1 text-sm text-slate-500">
-            ID Kontrak akan dibuat otomatis oleh smart contract. Setelah submit, kontrak akan
-            menunggu digital signature (approval) dari Finance lalu Direktur.
+            ID Kontrak akan dibuat otomatis oleh smart contract. Setelah submit, kontrak kerja
+            sama ini akan menunggu digital signature (approval) dari Finance lalu Direktur.
           </p>
         </div>
 

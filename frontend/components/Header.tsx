@@ -29,7 +29,7 @@ export function Header() {
           </span>
           <span className="flex flex-col leading-tight">
             <span className="text-sm font-semibold text-white">
-              Sistem Approval Kontrak
+              Sistem Approval Kontrak Kerja Sama
             </span>
             <span className="text-[11px] tracking-wide text-slate-400">
               BLOCKCHAIN VERIFIED

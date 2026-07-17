@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
 import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, Role, roleLabel } from "@/lib/contract";
@@ -34,6 +34,14 @@ function RegisterForm() {
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+
+  useEffect(() => {
+    if (isSuccess) {
+      setWallet("");
+      setUsername("");
+      setRole(Role.Legal);
+    }
+  }, [isSuccess]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

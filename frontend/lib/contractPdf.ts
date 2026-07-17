@@ -12,12 +12,12 @@ async function buildContractPdf(doc: CompanyContract) {
 
   pdf.setFontSize(18);
   pdf.setFont("helvetica", "bold");
-  pdf.text("SURAT KONTRAK", pageWidth / 2, 20, { align: "center" });
+  pdf.text("SURAT KONTRAK KERJA SAMA", pageWidth / 2, 20, { align: "center" });
 
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "normal");
   pdf.setTextColor(100);
-  pdf.text("Sistem Approval Kontrak - Diamankan dengan Blockchain", pageWidth / 2, 26, {
+  pdf.text("Sistem Approval Kontrak Kerja Sama - Diamankan dengan Blockchain", pageWidth / 2, 26, {
     align: "center",
   });
   pdf.setTextColor(0);
