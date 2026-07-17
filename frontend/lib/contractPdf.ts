@@ -92,23 +92,35 @@ async function buildContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
   pdf.text("ketentuan-ketentuan yang diatur sebagai berikut:", MARGIN_X, y);
   y += 10;
 
-  // Ringkasan kontrak (data praktis di luar format surat klasik).
-  y = ensureSpace(pdf, y, 20);
+  // Ringkasan kontrak (data praktis di luar format surat klasik). Box height is derived
+  // from the actual line count so the text never overflows the border, regardless of how
+  // long the keterangan wraps.
+  pdf.setFontSize(9);
+  const rowHeight = 6;
+  const ketRowHeight = 5;
+  const ketLines = doc.keterangan
+    ? pdf.splitTextToSize(`Keterangan: ${doc.keterangan}`, contentWidth - 8)
+    : [];
+  const boxTopPad = 5;
+  const boxBottomPad = 4;
+  const boxHeight = boxTopPad + rowHeight * 2 + ketLines.length * ketRowHeight + boxBottomPad;
+
+  y = ensureSpace(pdf, y, boxHeight + 4);
   pdf.setDrawColor(220);
   pdf.setFillColor(248, 250, 252);
-  pdf.roundedRect(MARGIN_X, y - 5, contentWidth, 16, 2, 2, "FD");
-  pdf.setFontSize(9);
+  pdf.roundedRect(MARGIN_X, y - boxTopPad, contentWidth, boxHeight, 2, 2, "FD");
   pdf.text(`Nilai Kerja Sama: ${formatRupiah(doc.contractValue)}`, MARGIN_X + 4, y);
   pdf.text(
     `Masa Berlaku: ${formatDateLong(doc.validFrom)} s/d ${formatDateLong(doc.validUntil)}`,
     MARGIN_X + 4,
-    y + 6
+    y + rowHeight
   );
-  if (doc.keterangan) {
-    const ketLines = pdf.splitTextToSize(`Keterangan: ${doc.keterangan}`, contentWidth - 8);
-    pdf.text(ketLines, MARGIN_X + 4, y + 12);
+  let ketY = y + rowHeight * 2;
+  for (const line of ketLines) {
+    pdf.text(line, MARGIN_X + 4, ketY);
+    ketY += ketRowHeight;
   }
-  y += 20;
+  y += boxHeight + 4;
   pdf.setFontSize(10);
 
   // Pasal-pasal.
