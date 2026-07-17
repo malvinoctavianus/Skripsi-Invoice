@@ -43,16 +43,22 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
     setStatus("pending");
     setJustAdded(false);
     try {
-      const added = await window.ethereum.request({
-        method: "wallet_watchAsset",
-        params: {
-          type: "ERC721",
-          options: {
-            address: CONTRACT_ADDRESS,
-            tokenId: tokenId.toString(),
+      // MetaMask sometimes never resolves wallet_watchAsset when the asset is already
+      // watched (no popup, no rejection), which would otherwise leave the button stuck
+      // disabled forever. Fall back to idle so it's always clickable again.
+      const added = await Promise.race([
+        window.ethereum.request({
+          method: "wallet_watchAsset",
+          params: {
+            type: "ERC721",
+            options: {
+              address: CONTRACT_ADDRESS,
+              tokenId: tokenId.toString(),
+            },
           },
-        },
-      });
+        }),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 15000)),
+      ]);
       if (added) {
         window.localStorage.setItem(storageKey(address, tokenId), "1");
         setAddedBefore(true);
