@@ -26,8 +26,9 @@ function storageKey(address: string, tokenId: bigint) {
  * times as needed (e.g. after removing the NFT from MetaMask). */
 export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
   const { address } = useAccount();
-  const [status, setStatus] = useState<"idle" | "pending" | "added" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "pending" | "error">("idle");
   const [addedBefore, setAddedBefore] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   const [hasWallet, setHasWallet] = useState(false);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
   async function handleClick() {
     if (!window.ethereum || !CONTRACT_ADDRESS || !address) return;
     setStatus("pending");
+    setJustAdded(false);
     try {
       const added = await window.ethereum.request({
         method: "wallet_watchAsset",
@@ -54,10 +56,9 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
       if (added) {
         window.localStorage.setItem(storageKey(address, tokenId), "1");
         setAddedBefore(true);
-        setStatus("added");
-      } else {
-        setStatus("idle");
+        setJustAdded(true);
       }
+      setStatus("idle");
     } catch {
       setStatus("error");
     }
@@ -75,16 +76,17 @@ export function AddNftToWalletButton({ tokenId }: { tokenId: bigint }) {
       >
         {status === "pending"
           ? "Menunggu konfirmasi MetaMask..."
-          : status === "added"
-            ? "✔ Ditambahkan ke MetaMask"
-            : addedBefore
-              ? "Tambahkan Lagi ke MetaMask"
-              : "+ Tambahkan Sertifikat NFT ke MetaMask"}
+          : addedBefore
+            ? "Tambahkan Lagi ke MetaMask"
+            : "+ Tambahkan Sertifikat NFT ke MetaMask"}
       </button>
       {status === "error" && <p className="text-xs text-red-600">Gagal menambahkan, coba lagi.</p>}
-      {addedBefore && status !== "pending" && (
+      {justAdded && status !== "pending" && (
+        <p className="text-xs text-emerald-600">✔ Berhasil ditambahkan ke MetaMask.</p>
+      )}
+      {addedBefore && !justAdded && status !== "pending" && (
         <p className="text-xs text-slate-400">
-          Kalau sudah dihapus dari MetaMask, klik lagi untuk menambahkannya kembali.
+          Kalau sudah dihapus dari MetaMask, klik tombol di atas untuk menambahkannya lagi.
         </p>
       )}
     </div>
