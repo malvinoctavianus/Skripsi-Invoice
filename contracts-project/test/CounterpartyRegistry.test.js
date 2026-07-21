@@ -4,22 +4,23 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 const Role = { None: 0, Admin: 1, Legal: 2, Finance: 3, Direktur: 4 };
 const Status = { Pending: 0, Approved: 1, Rejected: 2 };
+const Nationality = { WNI: 0, WNA: 1 };
 
 const now = () => Math.floor(Date.now() / 1000);
 
 describe("CounterpartyRegistry", function () {
   let registry, counterpartyRegistry, admin, legal1, legal2, outsider;
 
-  function add(signer, name, alamat) {
+  function add(signer, name, alamat, nationality = Nationality.WNI) {
     return counterpartyRegistry
       .connect(signer)
-      .addCounterparty(name, "Taufik Kusnanto", "Kulon Progo", now(), alamat, "757757868686868");
+      .addCounterparty(name, "Taufik Kusnanto", "Kulon Progo", now(), alamat, "757757868686868", nationality);
   }
 
-  function edit(signer, id, name, alamat) {
+  function edit(signer, id, name, alamat, nationality = Nationality.WNI) {
     return counterpartyRegistry
       .connect(signer)
-      .editCounterparty(id, name, "Taufik Kusnanto", "Kulon Progo", now(), alamat, "757757868686868");
+      .editCounterparty(id, name, "Taufik Kusnanto", "Kulon Progo", now(), alamat, "757757868686868", nationality);
   }
 
   beforeEach(async function () {
@@ -48,8 +49,22 @@ describe("CounterpartyRegistry", function () {
     expect(counterparty.birthPlace).to.equal("Kulon Progo");
     expect(counterparty.alamat).to.equal("Jl. Merdeka No. 1, Jakarta");
     expect(counterparty.idNumber).to.equal("757757868686868");
+    expect(counterparty.nationality).to.equal(Nationality.WNI);
     expect(counterparty.addedBy).to.equal(legal1.address);
     expect(counterparty.status).to.equal(Status.Pending);
+  });
+
+  it("stores and updates nationality (WNI/WNA)", async function () {
+    await add(legal1, "PT Asing", "Jl. Sudirman", Nationality.WNA);
+    const counterparty = await counterpartyRegistry.getCounterparty(1);
+    expect(counterparty.nationality).to.equal(Nationality.WNA);
+
+    await edit(legal1, 1, "PT Asing", "Jl. Sudirman Baru", Nationality.WNI);
+    const updated = await counterpartyRegistry.getCounterparty(1);
+    expect(updated.nationality).to.equal(Nationality.WNI);
+
+    const history = await counterpartyRegistry.getCounterpartyEditHistory(1);
+    expect(history[0].nationality).to.equal(Nationality.WNA);
   });
 
   it("rejects adding a counterparty from a non-Legal wallet", async function () {

@@ -112,6 +112,22 @@ export function counterpartyStatusLabel(status: CounterpartyStatus | number): st
   }
 }
 
+export enum Nationality {
+  WNI = 0,
+  WNA = 1,
+}
+
+export function nationalityLabel(nationality: Nationality | number): string {
+  switch (nationality) {
+    case Nationality.WNI:
+      return "WNI";
+    case Nationality.WNA:
+      return "WNA";
+    default:
+      return "Unknown";
+  }
+}
+
 export type Counterparty = {
   id: bigint;
   name: string;
@@ -120,6 +136,7 @@ export type Counterparty = {
   birthDate: bigint;
   alamat: string;
   idNumber: string;
+  nationality: Nationality;
   addedBy: `0x${string}`;
   addedAt: bigint;
   lastEditedBy: `0x${string}`;
@@ -137,6 +154,7 @@ export type CounterpartyEdit = {
   birthDate: bigint;
   alamat: string;
   idNumber: string;
+  nationality: Nationality;
   editedBy: `0x${string}`;
   editedAt: bigint;
 };

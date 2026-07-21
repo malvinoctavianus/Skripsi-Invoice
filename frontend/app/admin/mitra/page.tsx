@@ -12,6 +12,7 @@ import {
   COUNTERPARTY_REGISTRY_ADDRESS,
   CounterpartyStatus,
   counterpartyStatusLabel,
+  nationalityLabel,
 } from "@/lib/contract";
 import { ADMIN_NAV } from "@/lib/navigation";
 import { formatDateTime } from "@/lib/format";
@@ -153,7 +154,9 @@ function MitraReviewCard({ counterparty, onDone }: { counterparty: Counterparty;
             {formatDateTime(counterparty.birthDate)}
           </p>
           <p className="text-sm text-slate-500">{counterparty.alamat}</p>
-          <p className="text-sm text-slate-500">No. KTP/SIM: {counterparty.idNumber}</p>
+          <p className="text-sm text-slate-500">
+            No. KTP/SIM: {counterparty.idNumber} · {nationalityLabel(counterparty.nationality)}
+          </p>
           <p className="mt-1 text-xs text-slate-400">
             Diajukan {formatDateTime(counterparty.addedAt)} oleh {counterparty.addedBy}
             {counterparty.lastEditedAt > BigInt(0) && ` · diedit ${formatDateTime(counterparty.lastEditedAt)}`}

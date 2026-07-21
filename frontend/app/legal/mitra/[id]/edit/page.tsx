@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useCounterparty, useCounterpartyEditHistory } from "@/lib/useCounterparties";
-import { Role, COUNTERPARTY_REGISTRY_ABI, COUNTERPARTY_REGISTRY_ADDRESS, CounterpartyStatus } from "@/lib/contract";
+import {
+  Role,
+  COUNTERPARTY_REGISTRY_ABI,
+  COUNTERPARTY_REGISTRY_ADDRESS,
+  CounterpartyStatus,
+  Nationality,
+} from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
 import { isAlphanumericMix, isLettersOnly, isValidIdNumber } from "@/lib/mitraValidation";
 import { formatDateTime } from "@/lib/format";
@@ -43,6 +49,7 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
   const [birthDate, setBirthDate] = useState(toDateValue(new Date()));
   const [alamat, setAlamat] = useState("");
   const [idNumber, setIdNumber] = useState("");
+  const [nationality, setNationality] = useState<Nationality>(Nationality.WNI);
   const [formError, setFormError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -57,6 +64,7 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
     setBirthDate(toDateValue(new Date(Number(counterparty.birthDate) * 1000)));
     setAlamat(counterparty.alamat);
     setIdNumber(counterparty.idNumber);
+    setNationality(counterparty.nationality);
     setInitialized(true);
   }, [counterparty, initialized]);
 
@@ -176,6 +184,7 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
         BigInt(Math.floor(birthDateObj.getTime() / 1000)),
         alamat.trim(),
         idNumber.trim(),
+        nationality,
       ],
     });
   }
@@ -256,6 +265,35 @@ function EditMitraForm({ params }: { params: Promise<{ id: string }> }) {
             />
             <span className="text-xs font-normal text-slate-400">Harus persis 16 digit angka.</span>
           </label>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-slate-700">Kewarganegaraan</span>
+            <div className="flex gap-2">
+              {[
+                { value: Nationality.WNI, label: "WNI" },
+                { value: Nationality.WNA, label: "WNA" },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    nationality === option.value
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="nationality"
+                    value={option.value}
+                    checked={nationality === option.value}
+                    onChange={() => setNationality(option.value)}
+                    className="sr-only"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </div>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}
           {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}

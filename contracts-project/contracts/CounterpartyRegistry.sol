@@ -16,6 +16,11 @@ contract CounterpartyRegistry {
         Rejected
     }
 
+    enum Nationality {
+        WNI,
+        WNA
+    }
+
     struct Counterparty {
         uint256 id;
         string name; // Nama Perusahaan
@@ -24,6 +29,7 @@ contract CounterpartyRegistry {
         uint256 birthDate; // Tanggal Lahir (sesuai KTP)
         string alamat; // Alamat Sesuai KTP
         string idNumber; // No. KTP/SIM
+        Nationality nationality; // Kewarganegaraan (WNI/WNA)
         address addedBy;
         uint256 addedAt;
         address lastEditedBy;
@@ -41,6 +47,7 @@ contract CounterpartyRegistry {
         uint256 birthDate;
         string alamat;
         string idNumber;
+        Nationality nationality;
         address editedBy;
         uint256 editedAt;
     }
@@ -91,7 +98,8 @@ contract CounterpartyRegistry {
         string calldata birthPlace,
         uint256 birthDate,
         string calldata alamat,
-        string calldata idNumber
+        string calldata idNumber,
+        Nationality nationality
     ) external onlyLegal returns (uint256 id) {
         require(bytes(name).length > 0, "CounterpartyRegistry: name required");
         require(bytes(signatoryName).length > 0, "CounterpartyRegistry: signatory name required");
@@ -110,6 +118,7 @@ contract CounterpartyRegistry {
             birthDate: birthDate,
             alamat: alamat,
             idNumber: idNumber,
+            nationality: nationality,
             addedBy: msg.sender,
             addedAt: block.timestamp,
             lastEditedBy: address(0),
@@ -132,7 +141,8 @@ contract CounterpartyRegistry {
         string calldata birthPlace,
         uint256 birthDate,
         string calldata alamat,
-        string calldata idNumber
+        string calldata idNumber,
+        Nationality nationality
     ) external {
         require(id > 0 && id < nextCounterpartyId, "CounterpartyRegistry: counterparty does not exist");
         require(bytes(name).length > 0, "CounterpartyRegistry: name required");
@@ -170,6 +180,7 @@ contract CounterpartyRegistry {
                 birthDate: counterparty.birthDate,
                 alamat: counterparty.alamat,
                 idNumber: counterparty.idNumber,
+                nationality: counterparty.nationality,
                 editedBy: msg.sender,
                 editedAt: block.timestamp
             })
@@ -181,6 +192,7 @@ contract CounterpartyRegistry {
         counterparty.birthDate = birthDate;
         counterparty.alamat = alamat;
         counterparty.idNumber = idNumber;
+        counterparty.nationality = nationality;
         counterparty.lastEditedBy = msg.sender;
         counterparty.lastEditedAt = block.timestamp;
         // Edited data must be re-verified before it can be used again.

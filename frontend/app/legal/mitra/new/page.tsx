@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { RoleGuard } from "@/components/RoleGuard";
-import { Role, COUNTERPARTY_REGISTRY_ABI, COUNTERPARTY_REGISTRY_ADDRESS } from "@/lib/contract";
+import { Role, COUNTERPARTY_REGISTRY_ABI, COUNTERPARTY_REGISTRY_ADDRESS, Nationality } from "@/lib/contract";
 import { LEGAL_NAV } from "@/lib/navigation";
 import { isAlphanumericMix, isLettersOnly, isValidIdNumber } from "@/lib/mitraValidation";
 import { cardClass, errorAlertClass, inputClass, labelClass, primaryButtonClass } from "@/lib/ui";
@@ -35,6 +35,7 @@ function NewMitraForm() {
   const [birthDate, setBirthDate] = useState(toDateValue(new Date()));
   const [alamat, setAlamat] = useState("");
   const [idNumber, setIdNumber] = useState("");
+  const [nationality, setNationality] = useState<Nationality>(Nationality.WNI);
   const [formError, setFormError] = useState<string | null>(null);
 
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
@@ -111,6 +112,7 @@ function NewMitraForm() {
         BigInt(Math.floor(birthDateObj.getTime() / 1000)),
         alamat.trim(),
         idNumber.trim(),
+        nationality,
       ],
     });
   }
@@ -198,6 +200,35 @@ function NewMitraForm() {
             />
             <span className="text-xs font-normal text-slate-400">Harus persis 16 digit angka.</span>
           </label>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-slate-700">Kewarganegaraan</span>
+            <div className="flex gap-2">
+              {[
+                { value: Nationality.WNI, label: "WNI" },
+                { value: Nationality.WNA, label: "WNA" },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    nationality === option.value
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="nationality"
+                    value={option.value}
+                    checked={nationality === option.value}
+                    onChange={() => setNationality(option.value)}
+                    className="sr-only"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </div>
 
           {formError && <p className={errorAlertClass}>{formError}</p>}
           {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}

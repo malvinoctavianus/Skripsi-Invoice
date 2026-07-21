@@ -1,4 +1,4 @@
-import { CompanyContract, Counterparty } from "./contract";
+import { CompanyContract, Counterparty, nationalityLabel } from "./contract";
 import { formatDateLong, formatRupiah } from "./format";
 
 export type PdfPartyInfo = {
@@ -76,6 +76,7 @@ async function buildContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
     identityRow("Tempat, Tgl Lahir", `${cp.birthPlace}, ${formatDateLong(cp.birthDate)}`);
     identityRow("Alamat", cp.alamat);
     identityRow("No. KTP/SIM", cp.idNumber);
+    identityRow("Kewarganegaraan", nationalityLabel(cp.nationality));
   } else {
     identityRow("Nama Perusahaan", doc.counterpartyName);
   }
