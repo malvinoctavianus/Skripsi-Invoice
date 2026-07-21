@@ -47,6 +47,8 @@ export function useLegalContracts() {
   const rejected = contracts.filter(
     (doc) => doc.status === ContractStatus.RejectedByFinance || doc.status === ContractStatus.RejectedByDirektur
   );
+  const revisionRequested = contracts.filter((doc) => doc.status === ContractStatus.RevisionRequested);
+  const needsAction = [...rejected, ...revisionRequested];
 
   function refetch() {
     refetchIds();
@@ -58,18 +60,20 @@ export function useLegalContracts() {
     pending,
     approved,
     rejected,
+    revisionRequested,
+    needsAction,
     isLoading: idsLoading || contractsLoading,
     refetch,
   };
 }
 
 /** All contracts across every Legal wallet, newest first - for Finance/Direktur queues. */
-export function useAllContracts() {
+export function useAllContracts(enabled: boolean = true) {
   const { data: nextIdData, isLoading: nextIdLoading, refetch: refetchNextId } = useReadContract({
     abi: CONTRACT_ABI,
     address: CONTRACT_ADDRESS,
     functionName: "nextContractId",
-    query: { enabled: Boolean(CONTRACT_ADDRESS) },
+    query: { enabled: Boolean(CONTRACT_ADDRESS) && enabled },
   });
 
   const nextId = (nextIdData as bigint | undefined) ?? BigInt(1);
@@ -82,7 +86,7 @@ export function useAllContracts() {
       functionName: "getContract",
       args: [id],
     })),
-    query: { enabled: Boolean(CONTRACT_ADDRESS) && ids.length > 0 },
+    query: { enabled: Boolean(CONTRACT_ADDRESS) && enabled && ids.length > 0 },
   });
 
   const contracts = (contractsData ?? [])

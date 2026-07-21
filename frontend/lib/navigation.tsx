@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export type NavItem = { href: string; label: string; icon: ReactNode };
+export type NavItem = { href: string; label: string; icon: ReactNode; badge?: number };
 
 const iconProps = {
   viewBox: "0 0 24 24",

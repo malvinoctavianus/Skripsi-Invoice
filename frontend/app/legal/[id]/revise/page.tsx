@@ -106,12 +106,15 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
 
   const isRejected =
     contract.status === ContractStatus.RejectedByFinance || contract.status === ContractStatus.RejectedByDirektur;
+  const isRevisionRequested = contract.status === ContractStatus.RevisionRequested;
 
-  if (!isRejected) {
+  if (!isRejected && !isRevisionRequested) {
     return (
       <main className="flex w-full max-w-2xl flex-col gap-4 px-8 py-10">
         {backLink}
-        <p className="text-sm text-red-600">Kontrak ini tidak berstatus ditolak, tidak bisa direvisi.</p>
+        <p className="text-sm text-red-600">
+          Kontrak ini tidak berstatus ditolak atau diminta revisi, tidak bisa direvisi.
+        </p>
       </main>
     );
   }
@@ -126,6 +129,9 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
   }
 
   const doc = contract;
+  const revisionNote = isRevisionRequested
+    ? [...doc.history].reverse().find((r) => r.isRevisionRequest)?.note
+    : undefined;
 
   function updateClause(index: number, content: string) {
     setClauses((prev) => prev.map((clause, i) => (i === index ? { content } : clause)));
@@ -212,9 +218,14 @@ function ReviseContractForm({ params }: { params: Promise<{ id: string }> }) {
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Perbaiki data di bawah lalu ajukan ulang. Kontrak akan kembali ke tahap "Menunggu
-            Finance" dengan ID yang sama — riwayat penolakan sebelumnya tetap tersimpan sebagai
-            audit trail.
+            Finance" dengan ID yang sama — riwayat sebelumnya tetap tersimpan sebagai audit trail.
           </p>
+          {revisionNote && (
+            <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5">
+              <p className="text-xs font-semibold text-orange-800">Catatan Revisi dari Finance:</p>
+              <p className="mt-0.5 text-sm text-orange-700">{revisionNote}</p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

@@ -21,7 +21,8 @@ contract ContractApproval is ERC721 {
         PendingDirektur,
         Approved,
         RejectedByFinance,
-        RejectedByDirektur
+        RejectedByDirektur,
+        RevisionRequested
     }
 
     struct ContractClause {
@@ -34,6 +35,7 @@ contract ContractApproval is ERC721 {
         bool approved;
         string note;
         uint256 timestamp;
+        bool isRevisionRequest;
     }
 
     struct ContractDoc {
@@ -129,8 +131,10 @@ contract ContractApproval is ERC721 {
         ContractDoc storage doc = _requireContract(id);
         require(doc.legal == msg.sender, "ContractApproval: not the contract owner");
         require(
-            doc.status == Status.RejectedByFinance || doc.status == Status.RejectedByDirektur,
-            "ContractApproval: contract is not rejected"
+            doc.status == Status.RejectedByFinance ||
+                doc.status == Status.RejectedByDirektur ||
+                doc.status == Status.RevisionRequested,
+            "ContractApproval: contract is not rejected or awaiting revision"
         );
         require(bytes(counterpartyName).length > 0, "ContractApproval: counterparty name required");
         require(clauses.length > 0, "ContractApproval: at least one clause required");
@@ -155,7 +159,7 @@ contract ContractApproval is ERC721 {
         }
 
         doc.history.push(
-            ApprovalRecord(msg.sender, "Legal", true, "Kontrak direvisi dan diajukan ulang", block.timestamp)
+            ApprovalRecord(msg.sender, "Legal", true, "Kontrak direvisi dan diajukan ulang", block.timestamp, false)
         );
 
         emit ContractRevised(id, msg.sender, contractValue, block.timestamp);
@@ -165,7 +169,7 @@ contract ContractApproval is ERC721 {
         ContractDoc storage doc = _requireContract(id);
         require(doc.status == Status.PendingFinance, "ContractApproval: not awaiting Finance approval");
 
-        doc.history.push(ApprovalRecord(msg.sender, "Finance", true, note, block.timestamp));
+        doc.history.push(ApprovalRecord(msg.sender, "Finance", true, note, block.timestamp, false));
         doc.status = Status.PendingDirektur;
 
         emit ContractApprovalUpdated(id, msg.sender, doc.status, block.timestamp);
@@ -175,8 +179,22 @@ contract ContractApproval is ERC721 {
         ContractDoc storage doc = _requireContract(id);
         require(doc.status == Status.PendingFinance, "ContractApproval: not awaiting Finance approval");
 
-        doc.history.push(ApprovalRecord(msg.sender, "Finance", false, reason, block.timestamp));
+        doc.history.push(ApprovalRecord(msg.sender, "Finance", false, reason, block.timestamp, false));
         doc.status = Status.RejectedByFinance;
+
+        emit ContractApprovalUpdated(id, msg.sender, doc.status, block.timestamp);
+    }
+
+    /// @notice Lets Finance send a contract back to Legal for a specific fix (e.g. a payment
+    ///         clause) without ending the process like a reject would. The contract keeps
+    ///         moving once Legal revises and resubmits it via reviseContract.
+    function requestRevisionByFinance(uint256 id, string calldata note) external onlyRole(UserRegistry.Role.Finance) {
+        ContractDoc storage doc = _requireContract(id);
+        require(doc.status == Status.PendingFinance, "ContractApproval: not awaiting Finance approval");
+        require(bytes(note).length > 0, "ContractApproval: revision note required");
+
+        doc.history.push(ApprovalRecord(msg.sender, "Finance", false, note, block.timestamp, true));
+        doc.status = Status.RevisionRequested;
 
         emit ContractApprovalUpdated(id, msg.sender, doc.status, block.timestamp);
     }
@@ -185,7 +203,7 @@ contract ContractApproval is ERC721 {
         ContractDoc storage doc = _requireContract(id);
         require(doc.status == Status.PendingDirektur, "ContractApproval: not awaiting Direktur approval");
 
-        doc.history.push(ApprovalRecord(msg.sender, "Direktur", true, note, block.timestamp));
+        doc.history.push(ApprovalRecord(msg.sender, "Direktur", true, note, block.timestamp, false));
         doc.status = Status.Approved;
 
         emit ContractApprovalUpdated(id, msg.sender, doc.status, block.timestamp);
@@ -198,7 +216,7 @@ contract ContractApproval is ERC721 {
         ContractDoc storage doc = _requireContract(id);
         require(doc.status == Status.PendingDirektur, "ContractApproval: not awaiting Direktur approval");
 
-        doc.history.push(ApprovalRecord(msg.sender, "Direktur", false, reason, block.timestamp));
+        doc.history.push(ApprovalRecord(msg.sender, "Direktur", false, reason, block.timestamp, false));
         doc.status = Status.RejectedByDirektur;
 
         emit ContractApprovalUpdated(id, msg.sender, doc.status, block.timestamp);

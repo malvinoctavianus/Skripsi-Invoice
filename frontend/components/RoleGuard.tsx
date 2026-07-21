@@ -6,7 +6,8 @@ import { sepolia } from "wagmi/chains";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useCurrentUser } from "@/lib/useCurrentUser";
-import { Role, roleLabel } from "@/lib/contract";
+import { useAllContracts } from "@/lib/useContracts";
+import { ContractStatus, Role, roleLabel } from "@/lib/contract";
 import { NavItem } from "@/lib/navigation";
 import { cardClass, primaryButtonClass } from "@/lib/ui";
 
@@ -21,6 +22,18 @@ export function RoleGuard({
 }) {
   const { isConnected, isWrongNetwork, isLoading, isRegistered, role: userRole } = useCurrentUser();
   const { switchChain, isPending: isSwitching } = useSwitchChain();
+
+  // Called unconditionally to satisfy the Rules of Hooks; only used for Finance's
+  // "menunggu approval" nav badge, cheap to skip via `enabled` for every other role.
+  const { contracts } = useAllContracts(role === Role.Finance);
+  const financeQueueCount =
+    role === Role.Finance
+      ? contracts.filter((doc) => doc.status === ContractStatus.PendingFinance).length
+      : 0;
+  const navItemsWithBadge =
+    role === Role.Finance
+      ? navItems.map((item, i) => (i === 0 ? { ...item, badge: financeQueueCount } : item))
+      : navItems;
 
   if (!isConnected) {
     return (
@@ -73,5 +86,5 @@ export function RoleGuard({
     );
   }
 
-  return <DashboardLayout navItems={navItems}>{children}</DashboardLayout>;
+  return <DashboardLayout navItems={navItemsWithBadge}>{children}</DashboardLayout>;
 }

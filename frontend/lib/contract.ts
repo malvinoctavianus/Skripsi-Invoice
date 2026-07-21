@@ -47,6 +47,7 @@ export enum ContractStatus {
   Approved = 2,
   RejectedByFinance = 3,
   RejectedByDirektur = 4,
+  RevisionRequested = 5,
 }
 
 export function contractStatusLabel(status: ContractStatus | number): string {
@@ -61,6 +62,8 @@ export function contractStatusLabel(status: ContractStatus | number): string {
       return "Ditolak Finance";
     case ContractStatus.RejectedByDirektur:
       return "Ditolak Direktur";
+    case ContractStatus.RevisionRequested:
+      return "Revisi Diminta";
     default:
       return "Unknown";
   }
@@ -76,6 +79,7 @@ export type ApprovalRecord = {
   approved: boolean;
   note: string;
   timestamp: bigint;
+  isRevisionRequest: boolean;
 };
 
 export type CompanyContract = {

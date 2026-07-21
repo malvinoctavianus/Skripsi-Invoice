@@ -11,7 +11,7 @@ import { LEGAL_NAV } from "@/lib/navigation";
 import { formatRupiah, formatDateTime } from "@/lib/format";
 import { cardClass, primaryButtonClass, statusBadgeClass } from "@/lib/ui";
 
-type Tab = "pending" | "approved" | "rejected";
+type Tab = "pending" | "approved" | "needsAction";
 
 export default function LegalPage() {
   return (
@@ -23,10 +23,10 @@ export default function LegalPage() {
 
 function LegalDashboard() {
   const { username } = useCurrentUser();
-  const { pending, approved, rejected, isLoading } = useLegalContracts();
+  const { pending, approved, needsAction, isLoading } = useLegalContracts();
   const [tab, setTab] = useState<Tab>("pending");
 
-  const listByTab: Record<Tab, CompanyContract[]> = { pending, approved, rejected };
+  const listByTab: Record<Tab, CompanyContract[]> = { pending, approved, needsAction };
   const list = listByTab[tab];
 
   return (
@@ -46,7 +46,7 @@ function LegalDashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Pending" value={pending.length} />
         <StatCard label="Approved" value={approved.length} />
-        <StatCard label="Ditolak" value={rejected.length} />
+        <StatCard label="Perlu Tindakan" value={needsAction.length} />
       </div>
 
       <div className="flex gap-2">
@@ -54,7 +54,7 @@ function LegalDashboard() {
           [
             { key: "pending", label: `Pending (${pending.length})` },
             { key: "approved", label: `Approved (${approved.length})` },
-            { key: "rejected", label: `Ditolak (${rejected.length})` },
+            { key: "needsAction", label: `Perlu Tindakan (${needsAction.length})` },
           ] as { key: Tab; label: string }[]
         ).map((opt) => (
           <label

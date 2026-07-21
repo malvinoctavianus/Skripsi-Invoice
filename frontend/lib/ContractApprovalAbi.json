@@ -570,6 +570,11 @@
                 "internalType": "uint256",
                 "name": "timestamp",
                 "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isRevisionRequest",
+                "type": "bool"
               }
             ],
             "internalType": "struct ContractApproval.ApprovalRecord[]",
@@ -718,6 +723,24 @@
       }
     ],
     "name": "rejectByFinance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "note",
+        "type": "string"
+      }
+    ],
+    "name": "requestRevisionByFinance",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

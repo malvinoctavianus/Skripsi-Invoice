@@ -10,13 +10,25 @@ import {
 } from "@/lib/contract";
 import { formatDateTime } from "@/lib/format";
 
+/** Every revise (including after a revision request) pushes a "Legal" record - only the
+ * history after the most recent one belongs to the current cycle. Without this, a stale
+ * approval/rejection from a previous cycle could still show up after Legal resubmits. */
+function currentCycleHistory(history: readonly ApprovalRecord[]): readonly ApprovalRecord[] {
+  const lastLegalIndex = history.reduce(
+    (acc, record, i) => (record.roleLabel === "Legal" ? i : acc),
+    -1
+  );
+  return lastLegalIndex === -1 ? history : history.slice(lastLegalIndex + 1);
+}
+
 function findRecord(history: readonly ApprovalRecord[], roleLabel: string): ApprovalRecord | undefined {
-  return history.find((r) => r.roleLabel === roleLabel);
+  return [...history].reverse().find((r) => r.roleLabel === roleLabel);
 }
 
 export function ApprovalStatusPanel({ contract }: { contract: CompanyContract }) {
-  const financeRecord = findRecord(contract.history, "Finance");
-  const direkturRecord = findRecord(contract.history, "Direktur");
+  const cycleHistory = currentCycleHistory(contract.history);
+  const financeRecord = findRecord(cycleHistory, "Finance");
+  const direkturRecord = findRecord(cycleHistory, "Direktur");
 
   const wallets = [financeRecord?.wallet, direkturRecord?.wallet].filter(
     (wallet): wallet is `0x${string}` => Boolean(wallet)
@@ -44,7 +56,9 @@ export function ApprovalStatusPanel({ contract }: { contract: CompanyContract })
     {
       label: "Direktur",
       record: direkturRecord,
-      blocked: contract.status === ContractStatus.RejectedByFinance,
+      blocked:
+        contract.status === ContractStatus.RejectedByFinance ||
+        contract.status === ContractStatus.RevisionRequested,
     },
   ];
 
@@ -63,7 +77,9 @@ export function ApprovalStatusPanel({ contract }: { contract: CompanyContract })
               </div>
 
               {record ? (
-                record.approved ? (
+                record.isRevisionRequest ? (
+                  <span className="text-sm font-medium text-orange-600">↻ Revisi Diminta</span>
+                ) : record.approved ? (
                   <span className="text-sm font-medium text-emerald-600">✔ Approved</span>
                 ) : (
                   <span className="text-sm font-medium text-red-600">✘ Rejected</span>

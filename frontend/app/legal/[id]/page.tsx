@@ -51,6 +51,7 @@ function ContractDetail({ params }: { params: Promise<{ id: string }> }) {
 
   const isRejected =
     contract.status === ContractStatus.RejectedByFinance || contract.status === ContractStatus.RejectedByDirektur;
+  const isRevisionRequested = contract.status === ContractStatus.RevisionRequested;
 
   return (
     <main className="flex w-full max-w-3xl flex-col gap-6 px-8 py-10">
@@ -68,10 +69,10 @@ function ContractDetail({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
-      {isRejected && (
+      {(isRejected || isRevisionRequested) && (
         <div className="flex justify-end">
           <Link href={`/legal/${contract.id}/revise`} className={primaryButtonClass}>
-            Revisi &amp; Ajukan Ulang
+            {isRevisionRequested ? "Revisi Sesuai Permintaan Finance" : "Revisi & Ajukan Ulang"}
           </Link>
         </div>
       )}

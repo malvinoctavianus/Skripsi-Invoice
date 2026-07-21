@@ -13,7 +13,7 @@ import { CONTRACT_ABI, CONTRACT_ADDRESS, CompanyContract, ContractStatus, Role }
 import { FINANCE_NAV } from "@/lib/navigation";
 import { cardClass, errorAlertClass, inputClass, primaryButtonClass, secondaryButtonClass } from "@/lib/ui";
 
-type ActionMode = "approve" | "reject" | null;
+type ActionMode = "approve" | "reject" | "revise" | null;
 
 export default function FinanceContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
@@ -77,11 +77,22 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
       setFormError("Alasan penolakan wajib diisi.");
       return;
     }
+    if (actionMode === "revise" && note.trim().length === 0) {
+      setFormError("Catatan revisi wajib diisi supaya Legal tahu apa yang harus diperbaiki.");
+      return;
+    }
+
+    const functionName =
+      actionMode === "approve"
+        ? "approveByFinance"
+        : actionMode === "revise"
+          ? "requestRevisionByFinance"
+          : "rejectByFinance";
 
     writeContract({
       abi: CONTRACT_ABI,
       address: CONTRACT_ADDRESS,
-      functionName: actionMode === "approve" ? "approveByFinance" : "rejectByFinance",
+      functionName,
       args: [contract.id, note.trim()],
     });
   }
@@ -114,6 +125,16 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
               </button>
               <button
                 onClick={() => {
+                  setActionMode("revise");
+                  setNote("");
+                  setFormError(null);
+                }}
+                className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600"
+              >
+                Minta Revisi
+              </button>
+              <button
+                onClick={() => {
                   setActionMode("reject");
                   setNote("");
                   setFormError(null);
@@ -128,7 +149,11 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
           {actionMode && (
             <div className="flex flex-col gap-3">
               <label className="flex flex-col gap-1.5 text-sm font-medium text-slate-700">
-                {actionMode === "approve" ? "Catatan (opsional)" : "Alasan Penolakan"}
+                {actionMode === "approve"
+                  ? "Catatan (opsional)"
+                  : actionMode === "revise"
+                    ? "Catatan Revisi (wajib diisi)"
+                    : "Alasan Penolakan"}
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -136,11 +161,20 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
                   placeholder={
                     actionMode === "approve"
                       ? "mis. Sesuai anggaran, lanjutkan ke Direktur"
-                      : "mis. Melebihi budget bulan ini"
+                      : actionMode === "revise"
+                        ? "mis. Revisi klausul pembayaran menjadi 2 termin"
+                        : "mis. Melebihi budget bulan ini"
                   }
                   className={inputClass}
                 />
               </label>
+
+              {actionMode === "revise" && (
+                <p className="text-xs text-slate-400">
+                  Berbeda dengan Reject, proses tidak berhenti — Legal cukup merevisi kontrak
+                  ini dan mengajukan ulang dengan ID yang sama.
+                </p>
+              )}
 
               {formError && <p className={errorAlertClass}>{formError}</p>}
               {writeError && <p className={errorAlertClass}>{writeError.message.split("\n")[0]}</p>}
@@ -152,7 +186,9 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
                   className={
                     actionMode === "approve"
                       ? primaryButtonClass
-                      : "inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      : actionMode === "revise"
+                        ? "inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        : "inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                   }
                 >
                   {isPending
@@ -161,7 +197,9 @@ function FinanceContractDetail({ params }: { params: Promise<{ id: string }> }) 
                       ? "Mengirim ke blockchain..."
                       : actionMode === "approve"
                         ? "Konfirmasi Approve"
-                        : "Konfirmasi Reject"}
+                        : actionMode === "revise"
+                          ? "Konfirmasi Minta Revisi"
+                          : "Konfirmasi Reject"}
                 </button>
                 <button
                   type="button"

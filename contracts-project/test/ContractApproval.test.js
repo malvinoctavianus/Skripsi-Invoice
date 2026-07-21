@@ -9,6 +9,7 @@ const Status = {
   Approved: 2,
   RejectedByFinance: 3,
   RejectedByDirektur: 4,
+  RevisionRequested: 5,
 };
 
 describe("ContractApproval", function () {
@@ -195,7 +196,42 @@ describe("ContractApproval", function () {
 
     await expect(
       reviseDefault(legal1, 1, "PT Y", sampleClauses, "Keterangan test", sampleValue)
-    ).to.be.revertedWith("ContractApproval: contract is not rejected");
+    ).to.be.revertedWith("ContractApproval: contract is not rejected or awaiting revision");
+  });
+
+  it("lets Finance request a revision without ending the process, and Legal can revise and resubmit", async function () {
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", sampleValue);
+
+    await expect(
+      contractApproval.connect(finance1).requestRevisionByFinance(1, "Tolong revisi klausul pembayaran")
+    )
+      .to.emit(contractApproval, "ContractApprovalUpdated")
+      .withArgs(1, finance1.address, Status.RevisionRequested, anyValue);
+
+    let doc = await contractApproval.getContract(1);
+    expect(doc.status).to.equal(Status.RevisionRequested);
+    expect(doc.history[0].isRevisionRequest).to.equal(true);
+    expect(doc.history[0].approved).to.equal(false);
+    expect(doc.history[0].note).to.equal("Tolong revisi klausul pembayaran");
+
+    const revisedClauses = [{ content: "Pembayaran dilakukan dalam 2 termin." }];
+    await reviseDefault(legal1, 1, "PT X", revisedClauses, "Keterangan revisi", sampleValue);
+
+    doc = await contractApproval.getContract(1);
+    expect(doc.status).to.equal(Status.PendingFinance);
+    expect(doc.history[1].isRevisionRequest).to.equal(false);
+  });
+
+  it("rejects requesting a revision with an empty note or from a non-Finance wallet", async function () {
+    await createDefault(legal1, "PT X", sampleClauses, "Keterangan test", sampleValue);
+
+    await expect(
+      contractApproval.connect(finance1).requestRevisionByFinance(1, "")
+    ).to.be.revertedWith("ContractApproval: revision note required");
+
+    await expect(
+      contractApproval.connect(direktur1).requestRevisionByFinance(1, "revisi dong")
+    ).to.be.revertedWith("ContractApproval: wrong role");
   });
 
   it("lists contract ids by Legal wallet", async function () {
