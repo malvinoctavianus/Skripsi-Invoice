@@ -1,12 +1,16 @@
 "use client";
 
+import { useSwitchChain } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { roleLabel } from "@/lib/contract";
-import { cardClass, roleBadgeClass } from "@/lib/ui";
+import { cardClass, primaryButtonClass, roleBadgeClass } from "@/lib/ui";
 
 export default function ProfilePage() {
-  const { address, isConnected, isLoading, isAdmin, isRegistered, username, role } = useCurrentUser();
+  const { address, isConnected, isWrongNetwork, isLoading, isAdmin, isRegistered, username, role } =
+    useCurrentUser();
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
 
   if (!isConnected) {
     return (
@@ -14,6 +18,26 @@ export default function ProfilePage() {
         <div className={`${cardClass} flex w-full flex-col items-center gap-4`}>
           <p className="text-sm text-slate-500">Hubungkan wallet Anda terlebih dahulu.</p>
           <ConnectWalletButton />
+        </div>
+      </main>
+    );
+  }
+
+  if (isWrongNetwork) {
+    return (
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className={`${cardClass} flex w-full flex-col items-center gap-4`}>
+          <p className="text-sm text-amber-700">
+            Wallet Anda terhubung ke jaringan yang salah. Sistem ini berjalan di Ethereum
+            Sepolia — ganti jaringan di MetaMask untuk melanjutkan.
+          </p>
+          <button
+            onClick={() => switchChain({ chainId: sepolia.id })}
+            disabled={isSwitching}
+            className={primaryButtonClass}
+          >
+            {isSwitching ? "Mengganti jaringan..." : "Ganti ke Sepolia"}
+          </button>
         </div>
       </main>
     );

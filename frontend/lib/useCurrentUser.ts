@@ -1,24 +1,29 @@
 "use client";
 
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useChainId, useReadContract } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { USER_REGISTRY_ABI, USER_REGISTRY_ADDRESS, Role } from "./contract";
 
 export function useCurrentUser() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const isWrongNetwork = isConnected && chainId !== sepolia.id;
 
   const { data, isLoading, refetch } = useReadContract({
     abi: USER_REGISTRY_ABI,
     address: USER_REGISTRY_ADDRESS,
     functionName: "getUser",
     args: address ? [address] : undefined,
-    query: { enabled: Boolean(address && USER_REGISTRY_ADDRESS) },
+    chainId: sepolia.id,
+    query: { enabled: Boolean(address && USER_REGISTRY_ADDRESS) && !isWrongNetwork },
   });
 
   const { data: adminAddress } = useReadContract({
     abi: USER_REGISTRY_ABI,
     address: USER_REGISTRY_ADDRESS,
     functionName: "admin",
-    query: { enabled: Boolean(USER_REGISTRY_ADDRESS) },
+    chainId: sepolia.id,
+    query: { enabled: Boolean(USER_REGISTRY_ADDRESS) && !isWrongNetwork },
   });
 
   const result = data as
@@ -33,7 +38,8 @@ export function useCurrentUser() {
   return {
     address,
     isConnected,
-    isLoading,
+    isWrongNetwork,
+    isLoading: isWrongNetwork ? false : isLoading,
     refetch,
     isAdmin,
     isRegistered: result?.[2] ?? false,

@@ -2,10 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSwitchChain } from "wagmi";
+import { sepolia } from "wagmi/chains";
 import { ConnectWalletButton } from "@/components/ConnectWalletButton";
 import { useCurrentUser } from "@/lib/useCurrentUser";
 import { Role } from "@/lib/contract";
-import { cardClass } from "@/lib/ui";
+import { cardClass, primaryButtonClass } from "@/lib/ui";
 
 const ROLE_ROUTE: Partial<Record<Role, string>> = {
   [Role.Legal]: "/legal",
@@ -15,10 +17,11 @@ const ROLE_ROUTE: Partial<Record<Role, string>> = {
 
 export default function HomePage() {
   const router = useRouter();
-  const { isConnected, isLoading, isAdmin, isRegistered, role } = useCurrentUser();
+  const { isConnected, isWrongNetwork, isLoading, isAdmin, isRegistered, role } = useCurrentUser();
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
 
   useEffect(() => {
-    if (!isConnected || isLoading) return;
+    if (!isConnected || isWrongNetwork || isLoading) return;
     if (isAdmin) {
       router.push("/admin");
       return;
@@ -27,7 +30,7 @@ export default function HomePage() {
       const route = ROLE_ROUTE[role];
       if (route) router.push(route);
     }
-  }, [isConnected, isLoading, isAdmin, isRegistered, role, router]);
+  }, [isConnected, isWrongNetwork, isLoading, isAdmin, isRegistered, role, router]);
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-8 px-6 py-16 text-center">
@@ -46,15 +49,46 @@ export default function HomePage() {
 
       <ConnectWalletButton />
 
-      {isConnected && isLoading && (
+      {isConnected && isWrongNetwork && (
+        <div className={`${cardClass} flex w-full flex-col items-start gap-3 text-left`}>
+          <div className="flex items-start gap-2.5">
+            <svg
+              className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+              />
+            </svg>
+            <p className="text-sm text-amber-700">
+              Wallet Anda terhubung ke jaringan yang salah. Sistem ini berjalan di Ethereum
+              Sepolia — ganti jaringan di MetaMask untuk melanjutkan.
+            </p>
+          </div>
+          <button
+            onClick={() => switchChain({ chainId: sepolia.id })}
+            disabled={isSwitching}
+            className={`${primaryButtonClass} self-start`}
+          >
+            {isSwitching ? "Mengganti jaringan..." : "Ganti ke Sepolia"}
+          </button>
+        </div>
+      )}
+
+      {isConnected && !isWrongNetwork && isLoading && (
         <p className="text-sm text-slate-500">Memeriksa status wallet...</p>
       )}
 
-      {isConnected && !isLoading && (isAdmin || isRegistered) && (
+      {isConnected && !isWrongNetwork && !isLoading && (isAdmin || isRegistered) && (
         <p className="text-sm text-slate-500">Mengarahkan ke dashboard...</p>
       )}
 
-      {isConnected && !isLoading && !isAdmin && !isRegistered && (
+      {isConnected && !isWrongNetwork && !isLoading && !isAdmin && !isRegistered && (
         <div className={`${cardClass} flex w-full items-start gap-2.5 text-left`}>
           <svg
             className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500"
