@@ -25,6 +25,18 @@ export function ViewPdfButton({
   });
   const legalUsername = (legalUserData as readonly [string, number, boolean, bigint] | undefined)?.[0];
 
+  // Once Direktur has actually approved, they're the one with signing authority for the
+  // company - the PDF should show Direktur, not Legal, as PIHAK PERTAMA's signatory.
+  const direkturRecord = [...contract.history].reverse().find((r) => r.roleLabel === "Direktur" && r.approved);
+  const { data: direkturUserData } = useReadContract({
+    abi: USER_REGISTRY_ABI,
+    address: USER_REGISTRY_ADDRESS,
+    functionName: "getUser",
+    args: direkturRecord ? [direkturRecord.wallet] : undefined,
+    query: { enabled: Boolean(USER_REGISTRY_ADDRESS) && Boolean(direkturRecord) },
+  });
+  const direkturUsername = (direkturUserData as readonly [string, number, boolean, bigint] | undefined)?.[0];
+
   const { counterparties } = useAllCounterparties();
   const counterparty = counterparties.find((c) => c.name === contract.counterpartyName);
 
@@ -36,8 +48,11 @@ export function ViewPdfButton({
         setOpening(true);
         try {
           await previewContractPdf(contract, {
-            legalUsername: legalUsername || contract.legal,
-            legalWallet: contract.legal,
+            signerUsername: direkturRecord
+              ? direkturUsername || direkturRecord.wallet
+              : legalUsername || contract.legal,
+            signerWallet: direkturRecord ? direkturRecord.wallet : contract.legal,
+            signerRole: direkturRecord ? "Direktur" : "Legal",
             counterparty,
           });
         } finally {

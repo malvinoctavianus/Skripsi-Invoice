@@ -2,9 +2,11 @@ import { CompanyContract, Counterparty, nationalityLabel } from "./contract";
 import { formatDateLong, formatRupiah } from "./format";
 
 export type PdfPartyInfo = {
-  /** Pihak Pertama - representasi wallet Legal yang mengajukan kontrak ini. */
-  legalUsername: string;
-  legalWallet: string;
+  /** Pihak Pertama - the wallet with actual signing authority for the company: Direktur once
+   * the contract is Approved, or the Legal drafter beforehand (not yet officially signed). */
+  signerUsername: string;
+  signerWallet: string;
+  signerRole: "Legal" | "Direktur";
   /** Pihak Kedua - data mitra lengkap, kalau ditemukan di CounterpartyRegistry. */
   counterparty?: Counterparty;
 };
@@ -63,8 +65,9 @@ async function buildContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
     y += 6 * lines.length;
   }
 
-  identityRow("Nama", party.legalUsername);
-  identityRow("Wallet", party.legalWallet);
+  identityRow("Nama", party.signerUsername);
+  identityRow("Jabatan", party.signerRole);
+  identityRow("Wallet", party.signerWallet);
   y += 1;
   pdf.text("Yang selanjutnya disebut sebagai PIHAK PERTAMA.", MARGIN_X, y);
   y += 9;
@@ -165,7 +168,7 @@ async function buildContractPdf(doc: CompanyContract, party: PdfPartyInfo) {
   pdf.setTextColor(0);
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "bold");
-  pdf.text(party.legalUsername, colLeftX, y, { align: "center" });
+  pdf.text(party.signerUsername, colLeftX, y, { align: "center" });
   pdf.text(party.counterparty?.signatoryName ?? doc.counterpartyName, colRightX, y, { align: "center" });
   pdf.setFont("helvetica", "normal");
 
